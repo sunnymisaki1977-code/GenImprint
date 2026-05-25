@@ -1,0 +1,29 @@
+import type { Metadata } from "next";
+import { Noto_Sans_TC, Ma_Shan_Zheng } from "next/font/google";
+import "./globals.css";
+import { WorkflowProvider } from "@/context/WorkflowContext";
+import { AppLayout } from "@/components/AppLayout";
+
+const noto = Noto_Sans_TC({ subsets: ["latin"], weight: ["300", "400", "500", "700"] });
+const calligraphy = Ma_Shan_Zheng({ subsets: ["latin"], weight: ["400"], variable: "--font-calligraphy" });
+
+export const metadata: Metadata = {
+  title: "【世代銘印】創作者自動化升級藍圖",
+  description: "專為【世代銘印】打造的 Human-in-the-Loop AI 創作系統",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="zh-TW" className={`${calligraphy.variable}`}>
+      <body className={noto.className}>
+        <WorkflowProvider>
+          <AppLayout>{children}</AppLayout>
+        </WorkflowProvider>
+      </body>
+    </html>
+  );
+}

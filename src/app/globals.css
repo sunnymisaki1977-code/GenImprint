@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #fdfcf0;
+  --ink: #1a1a1a;
+  --cinnabar: #b91c1c;
+  --gold: #d97706;
+  --stone: #44403c;
+}
+
+body {
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image: url('/color_ink_bg.jpg');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+}
+
+@layer base {
+  h1, h2, h3, h4 {
+    @apply tracking-tight;
+  }
+}
+
+/* Custom Ink Wash Effects */
+.ink-wash-shadow {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e2e2e2;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d1d1d1;
+}
+
+/* Transition for step content */
+.step-fade-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.step-fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
