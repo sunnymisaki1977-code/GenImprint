@@ -37,12 +37,12 @@ export const AlmanacCard = () => {
   const activeJieQi = cnToTw(selectedLunar.getPrevJieQi(true).getName());
 
   const taiwanDeities = getDeitiesForLunarDate(Math.abs(selectedLunar.getMonth()), selectedLunar.getDay());
-  const lunarFestivals = [...selectedLunar.getFestivals(), ...selectedLunar.getOtherFestivals()].map(f => cnToTw(f)).filter(f => f.length > 0);
+  const lunarFestivals = [...selectedLunar.getFestivals(), ...selectedLunar.getOtherFestivals()].map((f: string) => cnToTw(f)).filter((f: string) => f.length > 0);
   const festivals = [...taiwanDeities, ...lunarFestivals];
   const uniqueFestivals = Array.from(new Set(festivals));
 
-  const yi = selectedLunar.getDayYi().map(y => cnToTw(y)).join("、");
-  const ji = selectedLunar.getDayJi().map(j => cnToTw(j)).join("、");
+  const yi = selectedLunar.getDayYi().map((y: string) => cnToTw(y)).join("、");
+  const ji = selectedLunar.getDayJi().map((j: string) => cnToTw(j)).join("、");
   const position = `財神：${cnToTw(selectedLunar.getPositionCaiDesc())} | 喜神：${cnToTw(selectedLunar.getPositionXiDesc())}`;
 
   const handleApplyTheme = () => {
@@ -145,9 +145,9 @@ export const AlmanacCard = () => {
 
         {/* Days Grid */}
         <div className="grid grid-cols-7 gap-y-3">
-          {prefixCells.map((_, idx) => <div key={`empty-${idx}`} />)}
+          {prefixCells.map((_: any, idx: number) => <div key={`empty-${idx}`} />)}
           
-          {monthDays.map((solarDay) => {
+          {monthDays.map((solarDay: any) => {
             const y = solarDay.getYear();
             const m = String(solarDay.getMonth()).padStart(2, '0');
             const d = String(solarDay.getDay()).padStart(2, '0');
