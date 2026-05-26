@@ -16,8 +16,10 @@ interface NotionPage {
 const extractOptions = (text: string, title: string) => {
   if (!text) return [];
   
-  const cleanText = text.replace(/[*#]/g, '');
-  let blocks = cleanText.split(/(?=第[一二三四五六七八九十\d]+組|設計組?\s*\d+|意象圖組?\s*\d+|[一二三四五六七八九十]、\s*(?:意象圖|縮圖意象|設計|縮圖))/);
+  const cleanText = text.replace(/[*#]/g, '').replace(/\r/g, '');
+  
+  // Split by common group headers
+  let blocks = cleanText.split(/(?=(?:^|\n)\s*(?:第[一二三四五六七八九十\d]+組|設計組?\s*\d+|意象圖組?\s*\d+|[一二三四五六七八九十]、\s*(?:意象圖|縮圖意象|設計|縮圖)))/i);
   
   if (blocks.length <= 1) {
      blocks = cleanText.split(/---/);
@@ -29,7 +31,6 @@ const extractOptions = (text: string, title: string) => {
     if (title === "道・大象無形") {
       let fullContent = content;
       if (poem) {
-        // Automatically add poem formatting text if a poem is found
         fullContent += `，搭配藝術詩詞文字直式排版（由上到下，從右到左）設計詩詞：${poem}`;
       }
       return `（colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, , no humans, ultra detailed和文字設計風格。) ${fullContent}`;
@@ -44,35 +45,35 @@ const extractOptions = (text: string, title: string) => {
   };
   
   for (const block of blocks) {
-    const enPromptMatch = block.match(/(?:AI Prompt \(English\)|English|英文)\s*[:：]\s*\n*\s*([^\n]+)/i);
-    const zhPromptMatch = block.match(/中文\s*[:：]\s*\n*\s*([^\n]+)/i);
+    if (block.trim().length < 10) continue;
+
+    // More robust matching for prompts
+    const promptMatch = block.match(/(?:AI Prompt.*?|English|英文|中文|Prompt|提示詞|指令)\s*[:：)]*\s*\n*\s*([^\n]+)/i);
     
-    if (zhPromptMatch || enPromptMatch) {
+    if (promptMatch) {
       const mainTitleMatch = block.match(/(?:主標(?:題)?|高點擊文案)\s*[:：]\s*([^\n]+)/i);
       const subTitleMatch = block.match(/副標(?:題)?\s*[:：]\s*([^\n]+)/i);
-      const fallbackTitleMatch = block.match(/縮圖名稱\s*[:：]\s*([^\n]+)/i);
+      const fallbackTitleMatch = block.match(/(?:縮圖名稱|意象圖名稱)\s*[:：]\s*([^\n]+)/i);
+      const headerTitleMatch = block.match(/(?:第[一二三四五六七八九十\d]+組|設計組?\s*\d+|意象圖組?\s*\d+|[一二三四五六七八九十]、\s*(?:意象圖|縮圖意象|設計|縮圖))\s*[:：]?\s*【?([^\n】]+)/i);
       
       let mTitle = mainTitleMatch ? mainTitleMatch[1].trim() : "";
       if (!mTitle && fallbackTitleMatch) mTitle = fallbackTitleMatch[1].trim();
+      if (!mTitle && headerTitleMatch) mTitle = headerTitleMatch[1].trim();
       
-      let content = zhPromptMatch ? zhPromptMatch[1].trim() : enPromptMatch![1].trim();
-      // Remove style suffix if present to avoid duplication with template
+      let content = promptMatch[1].trim();
       content = content.replace(/(?:畫面風格|風格)\s*[：:].*$/i, "").trim();
 
-      // Extract poem if present (usually at the end of the block)
       let poem = "";
-      const poemMatch = block.match(/(?:七言四句詩詞|詩詞)\s*[:：]\s*\n*([\s\S]+)/i);
+      const poemMatch = block.match(/(?:七言四句詩詞|詩詞)\s*[:：]\s*\n*([\s\S]*?)(?=\n\n|$)/i);
       if (poemMatch) {
-        poem = poemMatch[1].trim().replace(/\s+/g, ' '); // replace newlines/spaces with a single space
+        poem = poemMatch[1].trim().replace(/\s+/g, ' ');
       }
 
       const extractedSubTitle = subTitleMatch ? subTitleMatch[1].trim() : "";
       const template = getTemplate(content, mTitle, poem, extractedSubTitle);
       
-      // Optionally extract group name as title if mTitle is empty
-      const groupMatch = block.match(/(意象圖組?\s*\d+|第[一二三四五六七八九十\d]+組|設計組?\s*\d+)/);
-      if (!mTitle && groupMatch) {
-         mTitle = groupMatch[1].trim();
+      if (!mTitle) {
+         mTitle = "配樂設計";
       }
 
       options.push({
@@ -83,19 +84,19 @@ const extractOptions = (text: string, title: string) => {
     }
   }
   
+  // Fallback if structured matching fails
   if (options.length === 0) {
-    const globalMatches = Array.from(cleanText.matchAll(/中文\s*[:：]\s*\n*\s*([^\n]+)/gi));
-    if (globalMatches.length > 0) {
-       return globalMatches.map(m => {
-         const content = m[1].replace(/(?:畫面風格|風格)\s*[：:].*$/i, "").trim();
-         return { 
-           prompt: getTemplate(content, "", "", ""), 
-           mainTitle: "", 
-           subTitle: "" 
+    const validBlocks = blocks.filter(b => b.trim().length > 30);
+    if (validBlocks.length > 0 && blocks.length > 1) {
+       return validBlocks.map((b, i) => {
+         return {
+           prompt: getTemplate(b.trim(), `設計組 ${i+1}`, "", ""),
+           mainTitle: `設計組 ${i+1}`,
+           subTitle: ""
          };
        });
     }
-    return [{ prompt: getTemplate(text.trim(), "", "", ""), mainTitle: "", subTitle: "" }];
+    return [{ prompt: getTemplate(text.trim(), "", "", ""), mainTitle: "預設設計組", subTitle: "" }];
   }
   return options;
 };
