@@ -88,7 +88,13 @@ ${ctx.step4}
 3. AI Prompt (中文)：必須包含風格設定 (colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed)，並詳述畫面細節與文字擺放。
 4. AI Prompt (English)：對應的英文 Prompt，結尾註明 16:9。
 
-請依照範例格式輸出，確保視覺效果震撼且具吸睛力。`,
+請【嚴格】依照以下格式輸出，不要改變標題名稱或新增無謂的符號：
+
+### 第一組：[縮圖名稱]
+主標：[主標內容]
+副標：[副標內容]
+中文：[中文Prompt]
+English：[英文Prompt]`,
   },
   {
     id: 7,
@@ -106,7 +112,12 @@ ${ctx.step4}
 3. AI Prompt (中文)：包含風格設定 (colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed)，強調直式構圖與快速吸睛的視覺要素。
 4. AI Prompt (English)：對應的英文 Prompt，結尾註明 9:16。
 
-請確保風格與長影音系列保持一致。`,
+請【嚴格】依照以下格式輸出，不要改變標題名稱或新增無謂的符號：
+
+### 第一組：[短影音縮圖名稱]
+高點擊文案：[主標內容]
+中文：[中文Prompt]
+English：[英文Prompt]`,
   },
   {
     id: 8,
@@ -121,7 +132,14 @@ ${ctx.step4}
 2. 視覺設計：詳述畫面構成，必須包含風格標籤 (colorful ink wash, vivid diffusion...)，強調無人物、充滿禪意或史詩感的氛圍。
 3. 搭配詩詞：撰寫一首七言四句或相關風格的詩詞，呼應畫面意象。
 
-風格需維持統一的高級感與傳統文化底蘊。`,
+風格需維持統一的高級感與傳統文化底蘊。
+
+請【嚴格】依照以下格式輸出，不要改變標題名稱或新增無謂的符號：
+
+### 第一組：[意象圖名稱]
+詩詞：[七言四句詩詞]
+中文：[中文畫面描述]
+English：[英文Prompt]`,
   },
   {
     id: 9,
@@ -139,6 +157,12 @@ ${ctx.step4}
 每組需包含：
 - 【音樂 [編號]：[場景描述]】
 - 適用場景說明。
-- Suno AI Prompt：包含 Music Style、Instruments、Tempo 等參數。`,
+- Suno AI Prompt：包含 Music Style、Instruments、Tempo 等參數。
+
+請【嚴格】依照以下格式輸出，不要改變標題名稱或新增無謂的符號：
+
+### 第一組：[史詩感/敘事感/活力感]
+適用場景：[適用場景說明]
+Suno AI Prompt：[包含參數的Prompt內容]`,
   },
 ];

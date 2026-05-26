@@ -17,17 +17,17 @@ const extractOptions = (text: string) => {
   const cleanText = text.replace(/\r/g, '');
   
   // Split robustly against leading asterisks, hash marks, numbers, or spaces
-  const blocks = cleanText.split(/(?=(?:\s*\#\#+\s*)?(?:\*\*)?(?:\d+\.\s*(?:史詩|敘事|活力|音樂|【)|【?音樂\s*\d+|第[一二三]首))/i);
+  const blocks = cleanText.split(/(?=(?:\s*\#\#+\s*)?(?:\*\*)?(?:\d+\.\s*(?:史詩|敘事|活力|音樂|【)|【?音樂\s*\d+|第[一二三]首|組別\s*\d+|第[一二三四五六七八九十]組))/i);
   const options = [];
   
   for (const block of blocks) {
     if (!block.trim()) continue;
     
     // Match various ways the AI might introduce the prompt
-    const promptMatch = block.match(/(?:Suno AI Prompt|Prompt|指令|Suno指令|音樂生成提示詞|音樂提示詞|生成提示詞)\s*[：:]\s*\n*(?:\*\*)?\s*([\s\S]*)/i);
+    const promptMatch = block.match(/(?:Suno AI Prompt|Prompt|指令|Suno指令|音樂生成提示詞|音樂提示詞|生成提示詞|Music Style|Style)\s*[：:]\s*\n*(?:\*\*)?\s*([\s\S]*)/i);
     
     if (promptMatch) {
-      const titleMatch = block.match(/(?:^|\n)(?:\s*\#\#+\s*)?(?:\*\*)?(?:【?音樂\s*\d+\s*[：:]?\s*|第[一二三]首\s*[：:]?\s*|\d+\.\s*)([^\n】*(]+)/i);
+      const titleMatch = block.match(/(?:^|\n)(?:\s*\#\#+\s*)?(?:\*\*)?(?:【?音樂\s*\d+\s*[：:]?\s*|第[一二三]首\s*[：:]?\s*|\d+\.\s*|組別\s*\d+\s*[：:]?\s*|第[一二三四五六七八九十]組\s*[：:]?\s*)([^\n】*(]+)/i);
       const descMatch = block.match(/(?:適用場景說明|適用場景|場景描述|場景)\s*[：:]\s*([^\n]+)/i);
       
       let mTitle = titleMatch ? titleMatch[1].trim() : "";
