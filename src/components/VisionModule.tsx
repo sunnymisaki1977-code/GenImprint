@@ -119,6 +119,17 @@ const VisionCard = ({
       });
   };
 
+  const handleCopyOnly = (opt: { prompt: string }) => {
+    const textToCopy = `${opt.prompt}\n--ar ${aspectRatio}`;
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => {
+        toast.success("指令已複製！");
+      })
+      .catch(() => {
+        toast.error("複製失敗，請手動複製");
+      });
+  };
+
   const handlePromptChange = (index: number, newPrompt: string) => {
     const newOptions = [...editableOptions];
     newOptions[index].prompt = newPrompt;
@@ -187,13 +198,21 @@ const VisionCard = ({
                           {opt.mainTitle || `預設設計組 ${i+1}`}
                         </span>
                       </div>
-                      <Button 
-                        onClick={() => handleCopyAndGo(opt)} 
-                        className="bg-amber-500 hover:bg-amber-400 text-stone-900 h-9 px-4 rounded-full text-xs font-bold shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] transition-all flex shrink-0"
-                      >
-                        <Copy className="w-3.5 h-3.5 mr-1.5"/> 複製並前往
-                        <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          onClick={() => handleCopyOnly(opt)} 
+                          className="bg-stone-700 hover:bg-stone-600 text-stone-200 h-9 px-4 rounded-full text-xs font-bold transition-all flex shrink-0"
+                        >
+                          <Copy className="w-3.5 h-3.5 mr-1.5"/> 複製
+                        </Button>
+                        <Button 
+                          onClick={() => handleCopyAndGo(opt)} 
+                          className="bg-amber-500 hover:bg-amber-400 text-stone-900 h-9 px-4 rounded-full text-xs font-bold shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] transition-all flex shrink-0"
+                        >
+                          <Copy className="w-3.5 h-3.5 mr-1.5"/> 複製並前往
+                          <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
+                        </Button>
+                      </div>
                     </div>
                     
                     {opt.subTitle && (
