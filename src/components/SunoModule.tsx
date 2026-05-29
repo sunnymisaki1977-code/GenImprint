@@ -64,21 +64,15 @@ const extractOptions = (text: string) => {
   return options;
 };
 
-const SunoCard = ({
-  title,
-  subtitle,
-  promptData,
+const SunoSubCard = ({
+  opt,
+  index
 }: {
-  title: string;
-  subtitle: string;
-  promptData: { prompt: string; mainTitle: string; subTitle: string };
+  opt: {prompt: string, mainTitle: string, subTitle: string},
+  index: number
 }) => {
-  const [fullText, setFullText] = useState("");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    setFullText(promptData?.prompt || "");
-  }, [promptData]);
+  const [text, setText] = useState(opt.prompt);
 
   const getSelectedText = () => {
     if (textareaRef.current) {
@@ -87,7 +81,7 @@ const SunoCard = ({
         return value.substring(selectionStart, selectionEnd);
       }
     }
-    return fullText;
+    return text;
   };
 
   const handleCopyAndGo = () => {
@@ -98,7 +92,7 @@ const SunoCard = ({
     }
     navigator.clipboard.writeText(selected)
       .then(() => {
-        toast.success("已複製！正在開啟 Suno...");
+        toast.success(`已複製！正在開啟 Suno...`);
         window.open("https://suno.com/create", "_blank");
       })
       .catch(() => {
@@ -114,7 +108,7 @@ const SunoCard = ({
     }
     navigator.clipboard.writeText(selected)
       .then(() => {
-        toast.success("已複製！");
+        toast.success(`已複製！`);
       })
       .catch(() => {
         toast.error("複製失敗，請手動複製");
@@ -122,47 +116,86 @@ const SunoCard = ({
   };
 
   return (
+    <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm flex flex-col gap-4 group hover:border-amber-500/30 transition-colors">
+      <div className="flex items-center gap-2">
+        <BotMessageSquare size={16} className="text-amber-500" />
+        <span className="text-stone-700 font-bold text-sm tracking-wider">
+          {opt.mainTitle || `配樂組 ${index + 1}`}
+        </span>
+      </div>
+      
+      {opt.subTitle && (
+         <p className="text-stone-500 text-xs font-medium -mt-2">{opt.subTitle}</p>
+      )}
+
+      <div className="relative flex-1">
+        <textarea 
+          ref={textareaRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="w-full h-40 bg-stone-50 rounded-xl p-4 text-sm text-stone-600 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-amber-500/50 border border-stone-200 leading-relaxed shadow-inner"
+          spellCheck={false}
+        />
+      </div>
+      
+      <div className="flex items-center gap-3 justify-end mt-2">
+        <Button 
+          onClick={handleCopyOnly} 
+          className="bg-stone-700 hover:bg-stone-600 text-stone-200 h-10 px-6 rounded-xl text-xs font-bold transition-all flex shrink-0"
+        >
+          <Copy className="w-3.5 h-3.5 mr-2"/> 複製框選文字
+        </Button>
+        <Button 
+          onClick={handleCopyAndGo} 
+          className="bg-amber-500 hover:bg-amber-400 text-stone-900 h-10 px-6 rounded-xl text-xs font-bold shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] transition-all flex shrink-0"
+        >
+          <Copy className="w-3.5 h-3.5 mr-2"/> 複製並前往
+          <ExternalLink className="w-3.5 h-3.5 ml-1.5 opacity-50" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const SunoCard = ({
+  title,
+  subtitle,
+  options,
+}: {
+  title: string;
+  subtitle: string;
+  options: { prompt: string; mainTitle: string; subTitle: string }[];
+}) => {
+  return (
     <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] border border-stone-200 shadow-xl overflow-hidden flex flex-col lg:flex-row w-full min-h-[400px]">
       {/* Left Panel */}
-      <div className="bg-stone-900 w-full lg:w-72 p-6 md:p-8 flex flex-col justify-between shrink-0">
-        <div>
+      <div className="bg-stone-900 w-full lg:w-72 p-6 md:p-8 flex flex-col shrink-0">
+        <div className="sticky top-8">
           <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-2">{subtitle}</div>
           <h3 className="text-white text-2xl font-bold tracking-wider mb-6">{title}</h3>
           <p className="text-stone-400 text-sm leading-relaxed">
-            請在右側文字框中反白框選您需要的段落，然後點擊下方按鈕進行複製。未框選則複製全部。
+            每張卡片皆分為三個獨立小組。<br/><br/>
+            請在右側文字框中反白框選您需要的段落，然後點擊小卡下方的按鈕進行複製。<br/><br/>未框選則預設複製該小卡的全部內容。
           </p>
-        </div>
-        <div className="flex flex-col gap-3 mt-8">
-          <Button 
-            onClick={handleCopyOnly} 
-            className="w-full bg-stone-700 hover:bg-stone-600 text-stone-200 h-12 rounded-xl text-sm font-bold transition-all flex justify-center items-center"
-          >
-            <Copy className="w-4 h-4 mr-2"/> 複製框選文字
-          </Button>
-          <Button 
-            onClick={handleCopyAndGo} 
-            className="w-full bg-amber-500 hover:bg-amber-400 text-stone-900 h-12 rounded-xl text-sm font-bold shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] transition-all flex justify-center items-center"
-          >
-            <Copy className="w-4 h-4 mr-2"/> 複製並前往
-            <ExternalLink className="w-4 h-4 ml-1.5 opacity-50" />
-          </Button>
         </div>
       </div>
 
       {/* Right Panel */}
-      <div className="flex-1 p-6 md:p-8 bg-stone-50 flex flex-col relative">
-         <div className="absolute top-10 right-10 text-stone-300 pointer-events-none">
+      <div className="flex-1 p-6 md:p-8 bg-stone-50/50 flex flex-col gap-6 relative">
+         <div className="absolute top-10 right-10 text-stone-300 pointer-events-none z-0">
             <Music size={24}/>
          </div>
-         <div className="flex-1 flex flex-col relative z-10">
-           <textarea 
-             ref={textareaRef}
-             value={fullText}
-             onChange={(e) => setFullText(e.target.value)}
-             className="w-full flex-1 min-h-[300px] bg-white rounded-2xl p-6 text-sm text-stone-600 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-amber-500/50 shadow-sm border border-stone-200 leading-relaxed"
-             spellCheck={false}
-             placeholder={promptData?.prompt ? "解析中..." : "尚未載入 Prompt..."}
-           />
+         
+         <div className="relative z-10 flex flex-col gap-6">
+           {options.length > 0 ? (
+             options.map((opt, index) => (
+               <SunoSubCard key={index} opt={opt} index={index} />
+             ))
+           ) : (
+             <div className="w-full flex-1 min-h-[300px] bg-white rounded-2xl p-6 text-sm text-stone-400 font-mono flex items-center justify-center border border-stone-200 shadow-inner">
+               尚未載入 Prompt...
+             </div>
+           )}
          </div>
       </div>
     </div>
@@ -228,9 +261,6 @@ export const SunoModule = () => {
   };
 
   const extractedOptions = extractOptions(prompts.step9);
-  const opt1 = extractedOptions[0] || { prompt: "", mainTitle: "", subTitle: "" };
-  const opt2 = extractedOptions[1] || { prompt: "", mainTitle: "", subTitle: "" };
-  const opt3 = extractedOptions[2] || { prompt: "", mainTitle: "", subTitle: "" };
 
   return (
     <div className="max-w-7xl mx-auto p-12 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -294,19 +324,9 @@ export const SunoModule = () => {
         ) : (
           <div className="flex flex-col gap-8">
             <SunoCard 
-              title="音・史詩開場"
-              subtitle="史詩感配樂"
-              promptData={opt1}
-            />
-            <SunoCard 
-              title="音・敘事細節"
-              subtitle="敘事感配樂"
-              promptData={opt2}
-            />
-            <SunoCard 
-              title="音・現代活力"
-              subtitle="活力感配樂"
-              promptData={opt3}
+              title="道・大音希聲"
+              subtitle="Suno 配樂生成"
+              options={extractedOptions}
             />
           </div>
         )}

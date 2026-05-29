@@ -87,30 +87,17 @@ const extractOptions = (text: string, title: string) => {
   return options;
 };
 
-const VisionCard = ({
-  stepId,
-  title,
-  subtitle,
+const VisionSubCard = ({
+  opt,
   aspectRatio,
-  prompt,
+  index
 }: {
-  stepId: number;
-  title: string;
-  subtitle: string;
-  aspectRatio: "16:9" | "9:16";
-  prompt: string;
+  opt: {prompt: string, mainTitle: string, subTitle: string},
+  aspectRatio: string,
+  index: number
 }) => {
-  const [fullText, setFullText] = useState("");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const opts = extractOptions(prompt, title);
-    if (opts.length > 0) {
-      setFullText(opts.map(o => o.prompt).join('\n\n------------------------\n\n'));
-    } else {
-      setFullText("");
-    }
-  }, [prompt, title]);
+  const [text, setText] = useState(opt.prompt);
 
   const getSelectedText = () => {
     if (textareaRef.current) {
@@ -119,7 +106,7 @@ const VisionCard = ({
         return value.substring(selectionStart, selectionEnd);
       }
     }
-    return fullText; // Fallback to full text if nothing selected
+    return text;
   };
 
   const handleCopyAndGo = () => {
@@ -131,7 +118,7 @@ const VisionCard = ({
     const textToCopy = `${selected}\n--ar ${aspectRatio}`;
     navigator.clipboard.writeText(textToCopy)
       .then(() => {
-        toast.success("已複製！正在開啟 Gemini...");
+        toast.success(`已複製！正在開啟 Gemini...`);
         window.open("https://gemini.google.com/app", "_blank");
       })
       .catch(() => {
@@ -148,7 +135,7 @@ const VisionCard = ({
     const textToCopy = `${selected}\n--ar ${aspectRatio}`;
     navigator.clipboard.writeText(textToCopy)
       .then(() => {
-        toast.success("已複製！");
+        toast.success(`已複製！`);
       })
       .catch(() => {
         toast.error("複製失敗，請手動複製");
@@ -156,50 +143,99 @@ const VisionCard = ({
   };
 
   return (
+    <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm flex flex-col gap-4 group hover:border-amber-500/30 transition-colors">
+      <div className="flex items-center gap-2">
+        <BotMessageSquare size={16} className="text-amber-500" />
+        <span className="text-stone-700 font-bold text-sm tracking-wider">
+          {opt.mainTitle || `設計組 ${index + 1}`}
+        </span>
+      </div>
+      
+      {opt.subTitle && (
+         <p className="text-stone-500 text-xs font-medium -mt-2">{opt.subTitle}</p>
+      )}
+
+      <div className="relative flex-1">
+        <textarea 
+          ref={textareaRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="w-full h-40 bg-stone-50 rounded-xl p-4 text-sm text-stone-600 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-amber-500/50 border border-stone-200 leading-relaxed shadow-inner"
+          spellCheck={false}
+        />
+        <div className="absolute bottom-4 right-6 pointer-events-none text-xs text-stone-400 font-bold bg-white/80 px-2 py-1 rounded">
+          --ar {aspectRatio}
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-3 justify-end mt-2">
+        <Button 
+          onClick={handleCopyOnly} 
+          className="bg-stone-700 hover:bg-stone-600 text-stone-200 h-10 px-6 rounded-xl text-xs font-bold transition-all flex shrink-0"
+        >
+          <Copy className="w-3.5 h-3.5 mr-2"/> 複製框選文字
+        </Button>
+        <Button 
+          onClick={handleCopyAndGo} 
+          className="bg-amber-500 hover:bg-amber-400 text-stone-900 h-10 px-6 rounded-xl text-xs font-bold shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] transition-all flex shrink-0"
+        >
+          <Copy className="w-3.5 h-3.5 mr-2"/> 複製並前往
+          <ExternalLink className="w-3.5 h-3.5 ml-1.5 opacity-50" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const VisionCard = ({
+  stepId,
+  title,
+  subtitle,
+  aspectRatio,
+  prompt,
+}: {
+  stepId: number;
+  title: string;
+  subtitle: string;
+  aspectRatio: "16:9" | "9:16";
+  prompt: string;
+}) => {
+  const [options, setOptions] = useState<{prompt: string, mainTitle: string, subTitle: string}[]>([]);
+
+  useEffect(() => {
+    setOptions(extractOptions(prompt, title));
+  }, [prompt, title]);
+
+  return (
     <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] border border-stone-200 shadow-xl overflow-hidden flex flex-col lg:flex-row w-full min-h-[400px]">
       {/* Left Panel */}
-      <div className="bg-stone-900 w-full lg:w-72 p-6 md:p-8 flex flex-col justify-between shrink-0">
-        <div>
+      <div className="bg-stone-900 w-full lg:w-72 p-6 md:p-8 flex flex-col shrink-0">
+        <div className="sticky top-8">
           <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-2">{subtitle} ({aspectRatio})</div>
           <h3 className="text-white text-2xl font-bold tracking-wider mb-6">{title}</h3>
           <p className="text-stone-400 text-sm leading-relaxed">
-            請在右側文字框中反白框選您需要的段落，然後點擊下方按鈕進行複製。未框選則複製全部。
+            每張卡片皆分為三個獨立小組。<br/><br/>
+            請在右側文字框中反白框選您需要的段落，然後點擊小卡下方的按鈕進行複製。<br/><br/>未框選則預設複製該小卡的全部內容。
           </p>
-        </div>
-        <div className="flex flex-col gap-3 mt-8">
-          <Button 
-            onClick={handleCopyOnly} 
-            className="w-full bg-stone-700 hover:bg-stone-600 text-stone-200 h-12 rounded-xl text-sm font-bold transition-all flex justify-center items-center"
-          >
-            <Copy className="w-4 h-4 mr-2"/> 複製框選文字
-          </Button>
-          <Button 
-            onClick={handleCopyAndGo} 
-            className="w-full bg-amber-500 hover:bg-amber-400 text-stone-900 h-12 rounded-xl text-sm font-bold shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] transition-all flex justify-center items-center"
-          >
-            <Copy className="w-4 h-4 mr-2"/> 複製並前往
-            <ExternalLink className="w-4 h-4 ml-1.5 opacity-50" />
-          </Button>
         </div>
       </div>
 
       {/* Right Panel */}
-      <div className="flex-1 p-6 md:p-8 bg-stone-50 flex flex-col relative">
-         <div className="absolute top-10 right-10 text-stone-300 pointer-events-none">
+      <div className="flex-1 p-6 md:p-8 bg-stone-50/50 flex flex-col gap-6 relative">
+         <div className="absolute top-10 right-10 text-stone-300 pointer-events-none z-0">
             <Database size={24}/>
          </div>
-         <div className="flex-1 flex flex-col relative z-10">
-           <textarea 
-             ref={textareaRef}
-             value={fullText}
-             onChange={(e) => setFullText(e.target.value)}
-             className="w-full flex-1 min-h-[300px] bg-white rounded-2xl p-6 text-sm text-stone-600 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-amber-500/50 shadow-sm border border-stone-200 leading-relaxed"
-             spellCheck={false}
-             placeholder={prompt ? "解析中..." : "尚未載入 Prompt..."}
-           />
-           <div className="absolute bottom-4 right-6 pointer-events-none text-xs text-stone-400 font-bold bg-white/80 px-2 py-1 rounded">
-             --ar {aspectRatio}
-           </div>
+         
+         <div className="relative z-10 flex flex-col gap-6">
+           {options.length > 0 ? (
+             options.map((opt, index) => (
+               <VisionSubCard key={index} opt={opt} aspectRatio={aspectRatio} index={index} />
+             ))
+           ) : (
+             <div className="w-full flex-1 min-h-[300px] bg-white rounded-2xl p-6 text-sm text-stone-400 font-mono flex items-center justify-center border border-stone-200 shadow-inner">
+               {prompt ? "解析中..." : "尚未載入 Prompt..."}
+             </div>
+           )}
          </div>
       </div>
     </div>
