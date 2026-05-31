@@ -11,6 +11,7 @@ import { ChannelStats } from "@/components/ChannelStats";
 import { ExportModule } from "@/components/ExportModule";
 import { VisionModule } from "@/components/VisionModule";
 import { SunoModule } from "@/components/SunoModule";
+import { SocialModule } from "@/components/SocialModule";
 import { Tabs } from "@/components/Tabs";
 
 export default function Home() {
@@ -106,8 +107,10 @@ export default function Home() {
           <ExportModule />
         ) : activeView === "vision" ? (
           <VisionModule />
-        ) : (
+        ) : activeView === "suno" ? (
           <SunoModule />
+        ) : (
+          <SocialModule />
         )}
       </div>
     </div>
