@@ -19,12 +19,13 @@ export async function POST(req: Request) {
     });
 
     const prompt = `你是一位「世代銘印」頻道的專屬文化策展人與內容生成專家。
-現在我們要為主題「${theme}」進行一個 9 步驟的內容生產流程。
+現在我們要為主題「${theme}」進行一個 10 步驟的內容生產流程。
 
-請嚴格依照這 9 個步驟的邏輯順序進行生成，後續步驟必須參考前面的產出。
-你必須直接輸出 JSON 格式的結果，包含 9 個 key："1", "2", "3", "4", "5", "6", "7", "8", "9"。每個 key 對應的 value **必須是純文字字串** (可用 Markdown 格式排版)，**絕對不可使用巢狀 JSON 物件或陣列**。請確保輸出的 JSON 格式絕對正確，不要包含額外的說明。
+請嚴格依照這 10 個步驟的邏輯順序進行生成，後續步驟必須參考前面的產出。
+你必須直接輸出 JSON 格式的結果，包含 10 個 key："1", "2", "3", "4", "5", "6", "7", "8", "9", "10"。每個 key 對應的 value **必須是純文字字串** (可用 Markdown 格式排版)，**絕對不可使用巢狀 JSON 物件或陣列**。請確保輸出的 JSON 格式絕對正確，不要包含額外的說明。
+為避免長度超出限制，請保持內容精簡有力。
 
-【9 個步驟的要求如下】：
+【10 個步驟的要求如下】：
 步驟 1：針對主題「${theme}」進行深入的文化、歷史或背景資料彙整。包含：文化由來、核心意義、相關傳說或歷史紀錄。
 步驟 2：根據步驟 1 的背景資料，撰寫一份 5-10 分鐘的 YouTube 長影片腳本。包含引人入勝的開場、深度內容解析、以及總結與互動引導。
 步驟 3：根據步驟 2 的腳本，生成 5 個吸引人的標題、一組關鍵字標籤、以及一段包含時間軸建議的影片說明欄。
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
 步驟 7：生成 3 組短影音 YouTube 縮圖設計 (9:16)。包含與步驟 6 相似的內容，但針對直式螢幕構圖。
 步驟 8：針對主題生成 3 組 16:9 彩墨風格意象圖的中英雙語繪圖提示詞，並各搭配一首七言四句詩詞。
 步驟 9：針對主題生成 3 組 Suno AI 音樂生成提示詞 (1.史詩感、2.敘事感、3.活力感)，需包含 Music Style 等參數。
+步驟 10：針對主題生成跨平台的社群圖文推播文案，包含 FB 社群 (深度長文) 與 LINE 官方帳號 (早安問候短文)。
 
 請現在開始生成，並只回傳嚴格的 JSON 物件。`;
 
@@ -54,8 +56,8 @@ export async function POST(req: Request) {
         
         return NextResponse.json({ data: parsedData });
       } catch (err: any) {
-        if (err.message?.includes("503") && attempt < 3) {
-          console.warn(`[Gemini API] 503 High Demand. Retrying attempt ${attempt + 1}...`);
+        if ((err.message?.includes("503") || err instanceof SyntaxError || err.name === 'SyntaxError') && attempt < 3) {
+          console.warn(`[Gemini API] Error or Invalid JSON. Retrying attempt ${attempt + 1}...`);
           await new Promise(res => setTimeout(res, 3000));
           continue;
         }
