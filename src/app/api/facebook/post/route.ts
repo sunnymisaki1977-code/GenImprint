@@ -12,11 +12,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields (pageId, accessToken, message, image)" }, { status: 400 });
     }
 
+    // Convert File to Blob for proper streaming in Node.js fetch
+    const arrayBuffer = await image.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const blob = new Blob([buffer], { type: image.type || "image/jpeg" });
+
     // Prepare form data for Facebook Graph API
     const fbFormData = new FormData();
     fbFormData.append("access_token", accessToken);
     fbFormData.append("message", message);
-    fbFormData.append("source", image);
+    fbFormData.append("source", blob, image.name || "upload.jpg");
 
     const response = await fetch(`https://graph.facebook.com/v19.0/${pageId}/photos`, {
       method: "POST",
@@ -26,7 +31,7 @@ export async function POST(req: Request) {
     const data = await response.json();
     
     if (data.error) {
-      throw new Error(data.error.message);
+      return NextResponse.json({ error: data.error.message }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, id: data.id, post_id: data.post_id });
