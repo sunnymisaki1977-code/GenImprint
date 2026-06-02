@@ -130,6 +130,16 @@ export const Sidebar = () => {
           </div>
         </div>
       </div>
+
+      <div className="mt-4 pt-4 border-t border-stone-100 px-1 pb-2">
+        <button 
+          onClick={() => window.dispatchEvent(new Event("open-changelog"))}
+          className="w-full text-left flex items-center justify-between text-xs font-bold text-stone-500 hover:text-stone-900 transition-colors"
+        >
+          <span>更新日誌 (Changelog)</span>
+          <Sparkles size={14} className="text-amber-500" />
+        </button>
+      </div>
     </div>
   );
 };

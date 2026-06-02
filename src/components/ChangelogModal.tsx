@@ -33,6 +33,11 @@ export const ChangelogModal = () => {
     if (lastSeenVersion !== CURRENT_VERSION) {
       setIsOpen(true);
     }
+
+    // Listen for manual trigger
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener("open-changelog", handleOpen);
+    return () => window.removeEventListener("open-changelog", handleOpen);
   }, []);
 
   const handleClose = () => {
