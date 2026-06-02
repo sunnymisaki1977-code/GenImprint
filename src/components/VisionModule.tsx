@@ -19,7 +19,7 @@ const extractOptions = (text: string, title: string) => {
   const cleanText = text.replace(/[*#]/g, '').replace(/\r/g, '');
   
   // Split by common group headers
-  let blocks = cleanText.split(/(?=(?:^|\n)\s*(?:第[一二三四五六七八九十\d]+組|設計組?\s*\d+|意象圖組?\s*\d+|組別\s*\d+|[一二三四五六七八九十]、\s*(?:意象圖|縮圖意象|設計|縮圖)|\d+\.\s*(?:縮圖名稱|意象圖名稱|設計|意象圖|組別)))/i);
+  let blocks = cleanText.split(/(?=(?:^|\n)\s*(?:第[一二三四五六七八九十\d]+組|設計組?\s*\d+|意象圖組?\s*\d+|組別\s*\d+|[一二三四五六七八九十]、\s*(?:意象圖|縮圖意象|設計|縮圖|高點擊文案|方案)|\d+\.\s*(?:縮圖名稱|意象圖名稱|設計|意象圖|組別|高點擊文案|主標題|方案)|高點擊文案\s*[:：]|主標題\s*[:：]|方案\s*[一二三四五六七八九十\d]+))/i);
   
   if (blocks.length <= 1) {
      blocks = cleanText.split(/---/);
