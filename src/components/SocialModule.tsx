@@ -30,9 +30,10 @@ export const SocialModule = () => {
   const [accessToken, setAccessToken] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   
-  // Image Upload
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  // Notion Images
+  const [notionImages, setNotionImages] = useState<string[]>([]);
+  const [selectedImageUrl, setSelectedImageUrl] = useState("");
+  const [isFetchingImages, setIsFetchingImages] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
 
   useEffect(() => {
@@ -47,8 +48,31 @@ export const SocialModule = () => {
   useEffect(() => {
     if (selectedPageId) {
       fetchPrompts(selectedPageId);
+      fetchImages(selectedPageId);
     }
   }, [selectedPageId]);
+
+  const fetchImages = async (pageId: string) => {
+    setIsFetchingImages(true);
+    setNotionImages([]);
+    setSelectedImageUrl("");
+    try {
+      const res = await fetch("/api/notion/get-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pageId }),
+      });
+      const data = await res.json();
+      if (data.images && data.images.length > 0) {
+        setNotionImages(data.images);
+        setSelectedImageUrl(data.images[0]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch images", err);
+    } finally {
+      setIsFetchingImages(false);
+    }
+  };
 
   const saveSettings = () => {
     localStorage.setItem("FB_PAGE_ID", pageId);
@@ -173,24 +197,14 @@ export const SocialModule = () => {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setImagePreview(e.target?.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
   const postToFacebook = async () => {
     if (!pageId || !accessToken) {
       toast.error("請先設定 Facebook Page ID 與 Access Token！");
       setShowSettings(true);
       return;
     }
-    if (!imageFile) {
-      toast.error("請上傳一張圖片才能發佈至 Facebook！");
+    if (!selectedImageUrl) {
+      toast.error("請選擇一張 Notion 圖像網址才能發佈至 Facebook！");
       return;
     }
     if (!fbContent) {
@@ -200,17 +214,18 @@ export const SocialModule = () => {
 
     setIsPosting(true);
     try {
-      const formData = new FormData();
-      formData.append("pageId", pageId);
-      formData.append("accessToken", accessToken);
       // Remove the "### FB社群 (深度長文)" title for a cleaner post
       const cleanMessage = fbContent.replace(/###\s*FB社群[^\n]*/i, "").trim();
-      formData.append("message", cleanMessage);
-      formData.append("image", imageFile);
-
+      
       const res = await fetch("/api/facebook/post", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pageId,
+          accessToken,
+          message: cleanMessage,
+          imageUrl: selectedImageUrl,
+        })
       });
       const data = await res.json();
       
@@ -307,15 +322,6 @@ export const SocialModule = () => {
                 <ChevronDown size={20} />
               </div>
             </div>
-
-            <Button 
-              onClick={generateSocialPost} 
-              disabled={isGenerating || fetchingPrompts || !prompts.step2}
-              className="bg-amber-500 hover:bg-amber-600 text-white h-auto py-5 px-8 rounded-2xl font-bold shadow-lg shadow-amber-500/20 text-lg"
-            >
-              <Sparkles size={20} className={`mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-              {isGenerating ? "生成中..." : "AI 自動生成貼文"}
-            </Button>
           </div>
           
           {error && (
@@ -351,35 +357,69 @@ export const SocialModule = () => {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-stone-500">FB 貼文內容 (可編輯)</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-bold text-stone-500">FB 貼文內容 (可編輯)</label>
+                    <Button 
+                      onClick={generateSocialPost} 
+                      disabled={isGenerating || fetchingPrompts || !prompts.step2}
+                      className="bg-amber-500 hover:bg-amber-600 text-white h-8 px-4 rounded-lg font-bold shadow-sm"
+                    >
+                      <Sparkles size={14} className={`mr-1.5 ${isGenerating ? 'animate-spin' : ''}`} />
+                      {isGenerating ? "生成中..." : "AI 自動生成貼文"}
+                    </Button>
+                  </div>
                   <textarea 
                     value={fbContent}
                     onChange={(e) => setFbContent(e.target.value)}
                     className="flex-1 w-full bg-white rounded-xl p-4 text-sm text-stone-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#1877F2]/50 border border-stone-200 leading-relaxed min-h-[250px]"
                     placeholder="點擊上方「AI 自動生成貼文」..."
                   />
+                  
+                  <div className="flex flex-col gap-2 mt-2">
+                    <label className="text-sm font-bold text-stone-500">選取 Notion 圖像</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-stone-400">
+                        <ImagePlus size={16} />
+                      </div>
+                      <select
+                        value={selectedImageUrl}
+                        onChange={(e) => setSelectedImageUrl(e.target.value)}
+                        disabled={isFetchingImages || notionImages.length === 0}
+                        className="w-full text-sm pl-10 pr-10 py-3 rounded-xl border border-stone-200 bg-white focus:bg-white focus:border-[#1877F2] focus:ring-2 focus:ring-[#1877F2]/20 outline-none transition-all appearance-none disabled:opacity-50"
+                      >
+                        {isFetchingImages ? (
+                          <option>載入圖片中...</option>
+                        ) : notionImages.length > 0 ? (
+                          notionImages.map((url, i) => (
+                            <option key={i} value={url}>
+                              Notion 圖像 {i + 1}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="">(Notion 中找不到圖片)</option>
+                        )}
+                      </select>
+                      <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-stone-400">
+                        <ChevronDown size={16} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-stone-500">附帶圖片 (必須上傳)</label>
-                  <label className="flex-1 w-full bg-white rounded-xl border-2 border-dashed border-stone-300 hover:border-[#1877F2]/50 transition-colors flex flex-col items-center justify-center cursor-pointer overflow-hidden group min-h-[150px]">
-                    <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                    {imagePreview ? (
-                      <div className="relative w-full h-full p-2">
-                         <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-lg" />
-                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg m-2">
-                            <span className="text-white font-bold bg-black/50 px-4 py-2 rounded-full">點擊更換圖片</span>
-                         </div>
-                      </div>
+                  <label className="text-sm font-bold text-stone-500">預覽圖像</label>
+                  <div className="flex-1 w-full bg-white rounded-xl border border-stone-200 overflow-hidden flex items-center justify-center min-h-[250px] relative">
+                    {selectedImageUrl ? (
+                      <img src={selectedImageUrl} alt="Preview" className="absolute inset-0 w-full h-full object-contain bg-stone-100" />
                     ) : (
-                      <div className="flex flex-col items-center gap-3 text-stone-400 group-hover:text-[#1877F2] py-4">
-                        <ImagePlus size={36} className="opacity-50" />
-                        <span className="font-bold text-xs">點擊上傳 AI 生成圖片</span>
+                      <div className="flex flex-col items-center gap-3 text-stone-300">
+                        <ImagePlus size={48} className="opacity-50" />
+                        <span className="font-bold text-sm">無圖像預覽</span>
                       </div>
                     )}
-                  </label>
+                  </div>
                   
                   <div className="mt-2 flex flex-col gap-2">
                     <div className="flex items-center justify-between">

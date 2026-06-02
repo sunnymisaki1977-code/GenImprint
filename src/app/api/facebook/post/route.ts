@@ -2,26 +2,17 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const formData = await req.formData();
-    const pageId = formData.get("pageId") as string;
-    const accessToken = formData.get("accessToken") as string;
-    const message = formData.get("message") as string;
-    const image = formData.get("image") as File;
+    const { pageId, accessToken, message, imageUrl } = await req.json();
 
-    if (!pageId || !accessToken || !message || !image) {
-      return NextResponse.json({ error: "Missing required fields (pageId, accessToken, message, image)" }, { status: 400 });
+    if (!pageId || !accessToken || !message || !imageUrl) {
+      return NextResponse.json({ error: "Missing required fields (pageId, accessToken, message, imageUrl)" }, { status: 400 });
     }
 
-    // Convert File to Blob for proper streaming in Node.js fetch
-    const arrayBuffer = await image.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const blob = new Blob([buffer], { type: image.type || "image/jpeg" });
-
     // Prepare form data for Facebook Graph API
-    const fbFormData = new FormData();
+    const fbFormData = new URLSearchParams();
     fbFormData.append("access_token", accessToken);
     fbFormData.append("message", message);
-    fbFormData.append("source", blob, image.name || "upload.jpg");
+    fbFormData.append("url", imageUrl); // Send URL directly to FB
 
     const response = await fetch(`https://graph.facebook.com/v19.0/${pageId}/photos`, {
       method: "POST",
