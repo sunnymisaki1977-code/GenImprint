@@ -193,14 +193,18 @@ const VisionCard = ({
   subtitle,
   aspectRatio,
   prompt,
+  pageId,
 }: {
   stepId: number;
   title: string;
   subtitle: string;
   aspectRatio: "16:9" | "9:16";
   prompt: string;
+  pageId: string;
 }) => {
   const [options, setOptions] = useState<{prompt: string, mainTitle: string, subTitle: string}[]>([]);
+  const [url, setUrl] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
     setOptions(extractOptions(prompt, title));
@@ -213,10 +217,46 @@ const VisionCard = ({
         <div className="sticky top-8">
           <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-2">{subtitle} ({aspectRatio})</div>
           <h3 className="text-white text-2xl font-bold tracking-wider mb-6">{title}</h3>
-          <p className="text-stone-400 text-sm leading-relaxed">
+          <p className="text-stone-400 text-sm leading-relaxed mb-8">
             每張卡片皆分為三個獨立小組。<br/><br/>
             請在右側文字框中反白框選您需要的段落，然後點擊小卡下方的按鈕進行複製。<br/><br/>未框選則預設複製該小卡的全部內容。
           </p>
+
+          <div className="flex flex-col gap-2 p-4 bg-white/5 rounded-xl border border-white/10">
+            <label className="text-xs font-bold text-stone-300">匯入生成圖像至 Notion</label>
+            <input 
+              type="text" 
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="貼上 Gemini 分享網址或圖片連結..."
+              className="w-full bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-xs text-stone-200 focus:outline-none focus:border-amber-500 placeholder-stone-600"
+            />
+            <Button 
+              onClick={async () => {
+                if (!url) return;
+                setIsImporting(true);
+                try {
+                  const res = await fetch("/api/notion/append-url", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ pageId, url, stepName: subtitle }),
+                  });
+                  const data = await res.json();
+                  if (data.error) throw new Error(data.error);
+                  toast.success("成功匯入 Notion！");
+                  setUrl("");
+                } catch (error: any) {
+                  toast.error("匯入失敗: " + error.message);
+                } finally {
+                  setIsImporting(false);
+                }
+              }}
+              disabled={!url || isImporting || !pageId}
+              className="w-full bg-stone-700 hover:bg-amber-500 text-white hover:text-stone-900 rounded-lg h-8 text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isImporting ? "匯入中..." : "寫入 Notion"}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -367,6 +407,7 @@ export const VisionModule = () => {
               subtitle="長影音縮圖"
               aspectRatio="16:9"
               prompt={prompts.step6}
+              pageId={selectedPageId}
             />
             <VisionCard 
               stepId={7}
@@ -374,6 +415,7 @@ export const VisionModule = () => {
               subtitle="短影音縮圖"
               aspectRatio="9:16"
               prompt={prompts.step7}
+              pageId={selectedPageId}
             />
             <VisionCard 
               stepId={8}
@@ -381,6 +423,7 @@ export const VisionModule = () => {
               subtitle="彩墨空景"
               aspectRatio="16:9"
               prompt={prompts.step8}
+              pageId={selectedPageId}
             />
           </div>
         )}
