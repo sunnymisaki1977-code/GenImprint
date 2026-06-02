@@ -15,13 +15,15 @@ export const SocialModule = () => {
   const [selectedPageId, setSelectedPageId] = useState("");
   const [loadingPages, setLoadingPages] = useState(false);
   const [fetchingPrompts, setFetchingPrompts] = useState(false);
-  const [prompts, setPrompts] = useState<{ step2?: string }>({});
+  const [prompts, setPrompts] = useState<{ step1?: string; step2?: string }>({});
   const [error, setError] = useState<string | null>(null);
 
   // Generation & Publishing State
   const [isGenerating, setIsGenerating] = useState(false);
   const [fbContent, setFbContent] = useState("");
   const [lineContent, setLineContent] = useState("");
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [isGeneratingImagePrompt, setIsGeneratingImagePrompt] = useState(false);
   
   // Facebook Settings
   const [pageId, setPageId] = useState("");
@@ -79,6 +81,7 @@ export const SocialModule = () => {
     setPrompts({});
     setFbContent("");
     setLineContent("");
+    setImagePrompt("");
     try {
       const res = await fetch("/api/notion/get-prompts", {
         method: "POST",
@@ -141,6 +144,32 @@ export const SocialModule = () => {
       toast.error("生成失敗: " + err.message);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const generateImagePrompt = async () => {
+    if (!prompts.step1) {
+      toast.error("缺少 Step 1 基礎背景研究內容作為背景");
+      return;
+    }
+    const theme = pages.find(p => p.id === selectedPageId)?.title || "未知主題";
+    
+    setIsGeneratingImagePrompt(true);
+    try {
+      const res = await fetch("/api/social/generate-image-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme, step1Content: prompts.step1 }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      
+      setImagePrompt(data.content);
+      toast.success("成功生成圖像提示詞！");
+    } catch (err: any) {
+      toast.error("圖像提示詞生成失敗: " + err.message);
+    } finally {
+      setIsGeneratingImagePrompt(false);
     }
   };
 
@@ -335,7 +364,7 @@ export const SocialModule = () => {
                 
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-bold text-stone-500">附帶圖片 (必須上傳)</label>
-                  <label className="flex-1 w-full bg-white rounded-xl border-2 border-dashed border-stone-300 hover:border-[#1877F2]/50 transition-colors flex flex-col items-center justify-center cursor-pointer overflow-hidden group min-h-[250px]">
+                  <label className="flex-1 w-full bg-white rounded-xl border-2 border-dashed border-stone-300 hover:border-[#1877F2]/50 transition-colors flex flex-col items-center justify-center cursor-pointer overflow-hidden group min-h-[150px]">
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                     {imagePreview ? (
                       <div className="relative w-full h-full p-2">
@@ -345,12 +374,45 @@ export const SocialModule = () => {
                          </div>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center gap-3 text-stone-400 group-hover:text-[#1877F2]">
-                        <ImagePlus size={48} className="opacity-50" />
-                        <span className="font-bold">點擊上傳 AI 生成圖片</span>
+                      <div className="flex flex-col items-center gap-3 text-stone-400 group-hover:text-[#1877F2] py-4">
+                        <ImagePlus size={36} className="opacity-50" />
+                        <span className="font-bold text-xs">點擊上傳 AI 生成圖片</span>
                       </div>
                     )}
                   </label>
+                  
+                  <div className="mt-2 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-bold text-stone-500">AI 圖像提示詞 (Midjourney)</label>
+                      <Button 
+                        onClick={generateImagePrompt} 
+                        disabled={isGeneratingImagePrompt || fetchingPrompts || !prompts.step1}
+                        className="bg-stone-900 hover:bg-stone-800 text-white h-7 px-3 rounded text-[10px] font-bold transition-all flex shrink-0"
+                      >
+                        <Sparkles className={`w-3 h-3 mr-1.5 ${isGeneratingImagePrompt ? 'animate-spin' : ''}`}/>
+                        {isGeneratingImagePrompt ? "生成中..." : "生成提示詞"}
+                      </Button>
+                    </div>
+                    {imagePrompt && (
+                      <div className="relative">
+                        <textarea 
+                          readOnly
+                          value={imagePrompt}
+                          className="w-full bg-stone-100 rounded-lg p-3 text-xs text-stone-600 font-mono resize-y focus:outline-none border border-stone-200 min-h-[120px]"
+                        />
+                        <Button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(imagePrompt);
+                            toast.success("已複製圖像提示詞");
+                            window.open("https://discord.com/channels/@me", "_blank");
+                          }} 
+                          className="absolute bottom-3 right-3 bg-stone-200 hover:bg-stone-300 text-stone-700 h-6 px-3 rounded text-[10px] font-bold"
+                        >
+                          複製並開啟 Discord
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
