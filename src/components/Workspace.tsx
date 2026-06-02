@@ -142,7 +142,6 @@ export const Workspace = () => {
       if (data.error) throw new Error(data.error);
 
       toast.success("成功歸檔至 Notion！");
-      if (data.url) window.open(data.url, "_blank");
     } catch (err: any) {
       toast.error(err.message || "歸檔失敗");
     } finally {
