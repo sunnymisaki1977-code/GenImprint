@@ -406,9 +406,10 @@ export const SocialModule = () => {
                             toast.success("已複製圖像提示詞");
                             window.open("https://discord.com/channels/@me", "_blank");
                           }} 
-                          className="absolute bottom-3 right-3 bg-stone-200 hover:bg-stone-300 text-stone-700 h-6 px-3 rounded text-[10px] font-bold"
+                          className="absolute bottom-4 right-4 bg-amber-500 hover:bg-amber-400 text-stone-900 h-10 px-6 rounded-xl text-xs font-bold shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] transition-all flex shrink-0"
                         >
-                          複製並開啟 Discord
+                          <Copy className="w-3.5 h-3.5 mr-2"/> 複製並前往
+                          <ExternalLink className="w-3.5 h-3.5 ml-1.5 opacity-50" />
                         </Button>
                       </div>
                     )}
