@@ -47,12 +47,10 @@ export async function POST(req: Request) {
         if (url) {
           images.push({ url, name: lastHeading || `Notion 圖像 ${imageCount}` });
           imageCount++;
-          lastHeading = ""; // Reset heading after use
         }
       } else if (block.type === "bookmark" && block.bookmark.url) {
         images.push({ url: block.bookmark.url, name: lastHeading || `Notion 網址 ${imageCount}` });
         imageCount++;
-        lastHeading = ""; // Reset heading after use
       }
     }
 
