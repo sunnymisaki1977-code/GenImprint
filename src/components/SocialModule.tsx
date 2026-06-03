@@ -349,7 +349,7 @@ export const SocialModule = () => {
                 </h3>
                 <Button 
                   onClick={postToFacebook}
-                  disabled={isPosting || !fbContent || !imageFile}
+                  disabled={isPosting || !fbContent || !selectedImageUrl}
                   className="bg-[#1877F2] hover:bg-[#1877F2]/90 text-white px-6 font-bold rounded-xl shadow-lg shadow-[#1877F2]/20"
                 >
                   {isPosting ? <Sparkles size={16} className="animate-spin mr-2" /> : <Send size={16} className="mr-2" />}
