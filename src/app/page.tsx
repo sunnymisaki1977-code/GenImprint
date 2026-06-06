@@ -12,6 +12,7 @@ import { ExportModule } from "@/components/ExportModule";
 import { VisionModule } from "@/components/VisionModule";
 import { SunoModule } from "@/components/SunoModule";
 import { SocialModule } from "@/components/SocialModule";
+import { TeamModule } from "@/components/TeamModule";
 import { Tabs } from "@/components/Tabs";
 import { LockedOverlay } from "@/components/LockedOverlay";
 
@@ -122,10 +123,15 @@ export default function Home() {
             <SunoModule />
             <LockedOverlay title="Suno 配樂" subtitle="解鎖專屬配樂產製與情緒節奏控制" />
           </div>
-        ) : (
+        ) : activeView === "social" ? (
           <div className={`relative w-full ${!isUnlocked ? 'h-full overflow-hidden' : 'min-h-full'}`}>
             <SocialModule />
             <LockedOverlay title="社群推播" subtitle="解鎖社群一鍵發佈與智慧分發核心" />
+          </div>
+        ) : (
+          <div className={`relative w-full ${!isUnlocked ? 'h-full overflow-hidden' : 'min-h-full'}`}>
+            <TeamModule />
+            <LockedOverlay title="團隊編制" subtitle="解鎖專案核心團隊與當責指派" />
           </div>
         )}
       </div>
