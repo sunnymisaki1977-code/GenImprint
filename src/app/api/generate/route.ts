@@ -34,8 +34,11 @@ export async function POST(req: Request) {
         const text = response.text();
         return NextResponse.json({ text, modelUsed: modelName });
       } catch (err: any) {
-        if ((err.message?.includes("503") || err.message?.includes("not found")) && attempt < MAX_RETRIES) {
-          console.warn(`[Gemini API] Error (${err.message}) on single generate with model ${modelName}. Retrying attempt ${attempt + 1}...`);
+        const errorMsg = err.message || "";
+        const shouldRetry = errorMsg.includes("503") || errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("not found");
+        
+        if (shouldRetry && attempt < MAX_RETRIES) {
+          console.warn(`[Gemini API] Error (${errorMsg}) on single generate with model ${modelName}. Retrying attempt ${attempt + 1}...`);
           const delay = Math.pow(2, attempt) * 1500;
           await new Promise(res => setTimeout(res, delay));
           continue;

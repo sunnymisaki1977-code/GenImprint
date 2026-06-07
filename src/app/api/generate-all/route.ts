@@ -68,8 +68,11 @@ export async function POST(req: Request) {
         
         return NextResponse.json({ data: parsedData, modelUsed: modelName });
       } catch (err: any) {
-        if ((err.message?.includes("503") || err.message?.includes("not found") || err instanceof SyntaxError || err.name === 'SyntaxError') && attempt < MAX_RETRIES) {
-          console.warn(`[Gemini API] Error (${err.message}) with model ${modelName}. Retrying attempt ${attempt + 1}...`);
+        const errorMsg = err.message || "";
+        const shouldRetry = errorMsg.includes("503") || errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("not found") || err instanceof SyntaxError || err.name === 'SyntaxError';
+        
+        if (shouldRetry && attempt < MAX_RETRIES) {
+          console.warn(`[Gemini API] Error (${errorMsg}) with model ${modelName}. Retrying attempt ${attempt + 1}...`);
           const delay = Math.pow(2, attempt) * 1500; // Exponential backoff: 3s, 6s, 12s, 24s
           await new Promise(res => setTimeout(res, delay));
           continue;
