@@ -13,13 +13,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing theme" }, { status: 400 });
     }
 
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-        maxOutputTokens: 8192,
-      }
-    });
+    const MODELS = [
+      "gemini-2.5-flash",
+      "gemini-3.1-pro",
+      "gemini-2.5-pro",
+      "gemini-3.5-flash",
+      "gemini-3.0-flash"
+    ];
 
     const prompt = `你是一位「世代銘印」頻道的專屬文化策展人與內容生成專家。
 現在我們要為主題「${theme}」進行一個 9 步驟的內容生產流程。
@@ -44,6 +44,15 @@ export async function POST(req: Request) {
     let text = "";
     const MAX_RETRIES = 5;
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      const modelName = MODELS[attempt - 1] || MODELS[0];
+      const model = genAI.getGenerativeModel({ 
+        model: modelName,
+        generationConfig: {
+          responseMimeType: "application/json",
+          maxOutputTokens: 8192,
+        }
+      });
+
       try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -57,10 +66,10 @@ export async function POST(req: Request) {
           }
         }
         
-        return NextResponse.json({ data: parsedData });
+        return NextResponse.json({ data: parsedData, modelUsed: modelName });
       } catch (err: any) {
-        if ((err.message?.includes("503") || err instanceof SyntaxError || err.name === 'SyntaxError') && attempt < MAX_RETRIES) {
-          console.warn(`[Gemini API] Error or Invalid JSON. Retrying attempt ${attempt + 1}...`);
+        if ((err.message?.includes("503") || err.message?.includes("not found") || err instanceof SyntaxError || err.name === 'SyntaxError') && attempt < MAX_RETRIES) {
+          console.warn(`[Gemini API] Error (${err.message}) with model ${modelName}. Retrying attempt ${attempt + 1}...`);
           const delay = Math.pow(2, attempt) * 1500; // Exponential backoff: 3s, 6s, 12s, 24s
           await new Promise(res => setTimeout(res, delay));
           continue;
