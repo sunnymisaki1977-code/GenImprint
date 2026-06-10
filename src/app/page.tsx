@@ -128,8 +128,7 @@ export default function Home() {
                     <div className="flex gap-4">
                       <Button 
                         onClick={handleStart} 
-                        className="flex-1 py-7 text-xl rounded-2xl shadow-xl shadow-cinnabar/20 bg-cinnabar hover:bg-red-800"
-                        disabled={!inputTheme.trim()}
+                        className="flex-1 py-7 text-xl rounded-2xl shadow-xl shadow-cinnabar/20 bg-cinnabar hover:bg-red-800 disabled:opacity-50"
                       >
                         開始生成流程
                         <ArrowRight size={24} />
