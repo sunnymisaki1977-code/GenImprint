@@ -28,13 +28,14 @@ export default function Home() {
     let finalTheme = inputTheme.trim();
 
     if (inputMode === 'CUSTOM_DOCUMENT') {
+      if (!finalTheme) {
+        toast.error("請輸入聖蹟文獻主題");
+        return;
+      }
+      
       if (customDocText.trim().length < 50) {
         toast.error("輸入內容過短，建議提供 500~2000 字的完整文獻以利後續腳本提煉。");
         return;
-      }
-
-      if (!finalTheme) {
-        finalTheme = "自訂聖蹟文獻";
       }
 
       // 直接將使用者自訂文本寫入 Step 1 的資料槽
