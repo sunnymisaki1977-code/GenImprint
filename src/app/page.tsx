@@ -3,8 +3,9 @@
 import { useWorkflow } from "@/context/WorkflowContext";
 import { Workspace } from "@/components/Workspace";
 import { Button } from "@/components/ui";
-import { Sparkles, History, ArrowRight } from "lucide-react";
+import { Sparkles, History, ArrowRight, FileText, Bot } from "lucide-react";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 import { ChannelStats } from "@/components/ChannelStats";
 
@@ -15,14 +16,37 @@ import { SocialModule } from "@/components/SocialModule";
 import { Tabs } from "@/components/Tabs";
 import { LockedOverlay } from "@/components/LockedOverlay";
 
+type InputMode = 'AI_GENERATED' | 'CUSTOM_DOCUMENT';
+
 export default function Home() {
-  const { theme, setTheme, currentStep, setCurrentStep, resetWorkflow, stepsData, activeView, isUnlocked } = useWorkflow();
+  const { theme, setTheme, currentStep, setCurrentStep, resetWorkflow, stepsData, activeView, isUnlocked, setStepsData } = useWorkflow();
   const [inputTheme, setInputTheme] = useState(theme);
+  const [inputMode, setInputMode] = useState<InputMode>('AI_GENERATED');
+  const [customDocText, setCustomDocText] = useState<string>('');
 
   const handleStart = () => {
-    if (!inputTheme.trim()) return;
-    setTheme(inputTheme);
-    setCurrentStep(1);
+    if (!inputTheme.trim()) {
+      toast.error("請輸入內容主題");
+      return;
+    }
+    
+    if (inputMode === 'CUSTOM_DOCUMENT') {
+      if (customDocText.trim().length < 50) {
+        toast.error("輸入內容過短，建議提供 500~2000 字的完整文獻以利後續腳本提煉。");
+        return;
+      }
+      // 直接將使用者自訂文本寫入 Step 1 的資料槽
+      setStepsData(prev => ({
+        ...prev,
+        1: customDocText
+      }));
+      toast.success("📜 聖蹟文獻載入成功！系統已將其定錨為基礎背景。");
+      setTheme(inputTheme);
+      setCurrentStep(2); // 跳過 Step 1，直接進入 Step 2 (長影音腳本撰寫)
+    } else {
+      setTheme(inputTheme);
+      setCurrentStep(1); // 進入 Step 1 (基礎背景研究)
+    }
   };
 
   const hasProgress = Object.keys(stepsData).length > 0;
@@ -65,6 +89,41 @@ export default function Home() {
                         <Sparkles className="absolute right-6 top-1/2 -translate-y-1/2 text-gold group-focus-within:animate-pulse" size={28} />
                       </div>
                     </div>
+
+                    <div className="flex bg-stone-100 p-1 rounded-xl">
+                      <button
+                        onClick={() => setInputMode('AI_GENERATED')}
+                        className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-sm font-bold transition-all ${
+                          inputMode === 'AI_GENERATED' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-400 hover:text-stone-600'
+                        }`}
+                      >
+                        <Bot size={16} />
+                        模式 A：全自動背景生成
+                      </button>
+                      <button
+                        onClick={() => setInputMode('CUSTOM_DOCUMENT')}
+                        className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center gap-2 text-sm font-bold transition-all ${
+                          inputMode === 'CUSTOM_DOCUMENT' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-400 hover:text-stone-600'
+                        }`}
+                      >
+                        <FileText size={16} />
+                        模式 B：聖蹟文獻載入
+                      </button>
+                    </div>
+
+                    {inputMode === 'CUSTOM_DOCUMENT' && (
+                      <div className="space-y-3 text-left animate-in fade-in slide-in-from-top-2">
+                        <label className="text-xs font-black text-stone-400 ml-1 uppercase tracking-[0.2em]">
+                          貼上文獻內容 (作為 Step 1 基礎背景)
+                        </label>
+                        <textarea
+                          value={customDocText}
+                          onChange={(e) => setCustomDocText(e.target.value)}
+                          placeholder="請貼上已經整理好的文獻、廟宇沿革或歷史資料..."
+                          className="w-full h-40 p-4 resize-none rounded-2xl border-2 border-stone-100 bg-white/50 focus:bg-white focus:border-stone-900 focus:ring-8 focus:ring-stone-900/5 outline-none transition-all font-medium placeholder:text-stone-300 custom-scrollbar"
+                        />
+                      </div>
+                    )}
 
                     <div className="flex gap-4">
                       <Button 

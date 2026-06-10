@@ -83,7 +83,7 @@ export const Workspace = () => {
       const res = await fetch("/api/generate-all", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ theme }),
+        body: JSON.stringify({ theme, customDocText: stepsData[1] || "" }),
       });
 
       const json = await res.json();
@@ -101,7 +101,7 @@ export const Workspace = () => {
       }
       
       setCurrentStep(1);
-      setEditedContent(newData[1] || "");
+      setEditedContent(stepsData[1] || newData[1] || "");
       toast.success("全自動生成完成！您可以開始審閱與編輯。");
     } catch (err: any) {
       clearInterval(visualTimer);
@@ -113,10 +113,12 @@ export const Workspace = () => {
     }
   };
 
-  // Trigger auto-generate if we just entered Step 1 and it's empty
+  // Trigger auto-generate if we just entered Step 1 and it's empty, OR entered Step 2 and it's empty but Step 1 has custom document (Mode B)
   useEffect(() => {
-    if (currentStep === 1 && !stepsData[1] && !isAutoGenerating) {
-      startAutoGenerate();
+    if ((currentStep === 1 && !stepsData[1]) || (currentStep === 2 && !stepsData[2] && stepsData[1])) {
+      if (!isAutoGenerating) {
+        startAutoGenerate();
+      }
     }
   }, [theme, currentStep]); // Run when theme is set or step changes
 

@@ -9,6 +9,7 @@ interface WorkflowContextType {
   currentStep: number;
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
   stepsData: Record<number, string>;
+  setStepsData: React.Dispatch<React.SetStateAction<Record<number, string>>>;
   updateStepData: (stepId: number, data: string) => void;
   resetWorkflow: () => void;
   getStepContext: (stepId: number) => any;
@@ -89,6 +90,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         currentStep,
         setCurrentStep,
         stepsData,
+        setStepsData,
         updateStepData,
         resetWorkflow,
         getStepContext,
