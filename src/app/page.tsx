@@ -25,26 +25,32 @@ export default function Home() {
   const [customDocText, setCustomDocText] = useState<string>('');
 
   const handleStart = () => {
-    if (!inputTheme.trim()) {
-      toast.error("請輸入內容主題");
-      return;
-    }
-    
+    let finalTheme = inputTheme.trim();
+
     if (inputMode === 'CUSTOM_DOCUMENT') {
       if (customDocText.trim().length < 50) {
         toast.error("輸入內容過短，建議提供 500~2000 字的完整文獻以利後續腳本提煉。");
         return;
       }
+
+      if (!finalTheme) {
+        finalTheme = "自訂聖蹟文獻";
+      }
+
       // 直接將使用者自訂文本寫入 Step 1 的資料槽
       setStepsData(prev => ({
         ...prev,
         1: customDocText
       }));
       toast.success("📜 聖蹟文獻載入成功！系統已將其定錨為基礎背景。");
-      setTheme(inputTheme);
+      setTheme(finalTheme);
       setCurrentStep(2); // 跳過 Step 1，直接進入 Step 2 (長影音腳本撰寫)
     } else {
-      setTheme(inputTheme);
+      if (!finalTheme) {
+        toast.error("請輸入內容主題");
+        return;
+      }
+      setTheme(finalTheme);
       setCurrentStep(1); // 進入 Step 1 (基礎背景研究)
     }
   };
