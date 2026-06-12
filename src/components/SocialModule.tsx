@@ -5,10 +5,50 @@ import { Button } from "./ui";
 import { ChevronDown, Database, AlertCircle, MessageSquareShare, Sparkles, Copy, ExternalLink, BotMessageSquare, ImagePlus, Settings, Send } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-interface NotionPage {
-  id: string;
-  title: string;
-}
+const extractSection = (text: string, keyword: string) => {
+  if (!text) return "";
+  
+  const blocks = text.split(/### /);
+  if (keyword === "視覺 Prompt") {
+     const visuals = blocks.filter(b => b.includes("視覺 Prompt")).map(b => "### " + b.trim()).join("\n\n");
+     return visuals;
+  }
+  const found = blocks.find(b => b.includes(keyword));
+  return found ? ("### " + found).trim() : "";
+};
+
+const SocialSubCard = ({ title, content, icon: Icon }: { title: string; content: string; icon: any }) => {
+  const [text, setText] = useState(content);
+  
+  useEffect(() => {
+    setText(content);
+  }, [content]);
+
+  return (
+    <div className="bg-white rounded-[2rem] border border-stone-200 p-6 flex flex-col gap-4 shadow-sm relative group transition-all hover:shadow-md h-full">
+      <h4 className="font-bold text-stone-700 flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+          <Icon size={16} />
+        </div>
+        {title}
+      </h4>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="flex-1 w-full bg-stone-50 rounded-xl p-5 text-sm text-stone-600 resize-none min-h-[300px] border border-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all leading-relaxed font-medium"
+      />
+      <Button
+        onClick={() => {
+          navigator.clipboard.writeText(text);
+          toast.success("已複製！");
+        }}
+        className="absolute bottom-10 right-10 bg-stone-900 hover:bg-stone-800 text-white h-10 px-5 rounded-xl text-xs transition-all opacity-0 group-hover:opacity-100 shadow-xl shadow-black/10 flex items-center gap-2"
+      >
+        <Copy size={16} /> 複製文案
+      </Button>
+    </div>
+  );
+};
 
 export const SocialModule = () => {
   const [pages, setPages] = useState<NotionPage[]>([]);
@@ -318,136 +358,52 @@ export const SocialModule = () => {
             <p className="font-medium tracking-widest uppercase">解析脈絡中...</p>
           </div>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-8 min-h-[400px]">
-            {/* FB Posting Section */}
-            <div className="flex-1 bg-stone-50 rounded-[2rem] border border-stone-200 p-8 flex flex-col gap-6 relative shadow-inner">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-[#1877F2] flex items-center gap-2">
-                  <MessageSquareShare size={24}/>
-                  Facebook 發布設定
-                </h3>
+          <div className="flex flex-col gap-8 min-h-[400px]">
+            <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-stone-200 p-10 flex flex-col gap-8 shadow-2xl relative">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold text-stone-900 flex items-center gap-3 font-calligraphy">
+                    <MessageSquareShare size={28} className="text-amber-500"/>
+                    社群推播發控中心
+                  </h3>
+                  <p className="text-stone-500 text-sm ml-10">一鍵生成動態視覺提示詞、圖卡排版字卡與社群正文</p>
+                </div>
                 <Button 
-                  onClick={postToFacebook}
-                  disabled={isPosting || !fbContent || !selectedImageUrl}
-                  className="bg-[#1877F2] hover:bg-[#1877F2]/90 text-white px-6 font-bold rounded-xl shadow-lg shadow-[#1877F2]/20"
+                  onClick={generateSocialPost} 
+                  disabled={isGenerating || fetchingPrompts || !prompts.step1}
+                  className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-6 text-lg font-bold rounded-2xl shadow-[0_8px_30px_rgb(245,158,11,0.3)] transition-all transform hover:scale-105 active:scale-95 flex items-center gap-3"
                 >
-                  {isPosting ? <Sparkles size={16} className="animate-spin mr-2" /> : <Send size={16} className="mr-2" />}
-                  一鍵發送至 FB
+                  <Sparkles size={20} className={isGenerating ? 'animate-spin' : ''} />
+                  {isGenerating ? "AI 煉製中..." : "一鍵生成社群懶人包"}
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-bold text-stone-500">社群圖文懶人包 (包含文案與提示詞)</label>
-                    <Button 
-                      onClick={generateSocialPost} 
-                      disabled={isGenerating || fetchingPrompts || !prompts.step1}
-                      className="bg-amber-500 hover:bg-amber-600 text-white h-8 px-4 rounded-lg font-bold shadow-sm"
-                    >
-                      <Sparkles size={14} className={`mr-1.5 ${isGenerating ? 'animate-spin' : ''}`} />
-                      {isGenerating ? "生成中..." : "AI 生成懶人包"}
-                    </Button>
-                  </div>
-                  <textarea 
-                    value={fbContent}
-                    onChange={(e) => setFbContent(e.target.value)}
-                    className="flex-1 w-full bg-white rounded-xl p-4 text-sm text-stone-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#1877F2]/50 border border-stone-200 leading-relaxed min-h-[250px]"
-                    placeholder="點擊上方「AI 生成懶人包」..."
+              {fbContent ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
+                  <SocialSubCard 
+                    title="視覺動態 Prompt" 
+                    content={extractSection(fbContent, "視覺 Prompt")} 
+                    icon={ImagePlus} 
                   />
-                  
-                  <div className="flex flex-col gap-2 mt-2">
-                    <label className="text-sm font-bold text-stone-500">選取 Notion 圖像</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-stone-400">
-                        <ImagePlus size={16} />
-                      </div>
-                      <select
-                        value={selectedImageUrl}
-                        onChange={(e) => setSelectedImageUrl(e.target.value)}
-                        disabled={isFetchingImages || notionImages.length === 0}
-                        className="w-full text-sm pl-10 pr-10 py-3 rounded-xl border border-stone-200 bg-white focus:bg-white focus:border-[#1877F2] focus:ring-2 focus:ring-[#1877F2]/20 outline-none transition-all appearance-none disabled:opacity-50"
-                      >
-                        {isFetchingImages ? (
-                          <option>載入圖片中...</option>
-                        ) : notionImages.length > 0 ? (
-                          notionImages.map((img, i) => (
-                            <option key={i} value={img.url}>
-                              {img.name}
-                            </option>
-                          ))
-                        ) : (
-                          <option value="">(Notion 中找不到圖片)</option>
-                        )}
-                      </select>
-                      <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-stone-400">
-                        <ChevronDown size={16} />
-                      </div>
-                    </div>
-                  </div>
+                  <SocialSubCard 
+                    title="圖卡排版字卡" 
+                    content={extractSection(fbContent, "圖卡排版字卡")} 
+                    icon={BotMessageSquare} 
+                  />
+                  <SocialSubCard 
+                    title="社群發布正文" 
+                    content={extractSection(fbContent, "社群發布正文")} 
+                    icon={MessageSquareShare} 
+                  />
                 </div>
-                
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-stone-500">預覽圖像 / 連結</label>
-                  <div className="flex-1 w-full bg-white rounded-xl border border-stone-200 overflow-hidden flex items-center justify-center min-h-[250px] relative p-4">
-                    {selectedImageUrl ? (
-                      /\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i.test(selectedImageUrl) || selectedImageUrl.startsWith("data:image") ? (
-                        <img src={selectedImageUrl} alt="Preview" className="absolute inset-0 w-full h-full object-contain bg-stone-100" />
-                      ) : (
-                        <div className="flex flex-col items-center gap-4 text-stone-500 text-center">
-                          <ExternalLink size={48} className="text-amber-500" />
-                          <div>
-                            <span className="font-bold text-sm block mb-2">這是外部網頁連結</span>
-                            <a href={selectedImageUrl} target="_blank" rel="noreferrer" className="text-xs text-[#1877F2] hover:underline break-all">
-                              {selectedImageUrl}
-                            </a>
-                          </div>
-                          <span className="text-xs text-stone-400 mt-2 bg-stone-100 px-3 py-1 rounded-full">此連結將作為 FB 貼文的分享連結發佈</span>
-                        </div>
-                      )
-                    ) : (
-                      <div className="flex flex-col items-center gap-3 text-stone-300">
-                        <ImagePlus size={48} className="opacity-50" />
-                        <span className="font-bold text-sm">無預覽項目</span>
-                      </div>
-                    )}
+              ) : (
+                <div className="h-[400px] flex flex-col items-center justify-center gap-6 text-stone-400 bg-stone-50/50 rounded-[2rem] border-2 border-stone-100 border-dashed mt-4">
+                  <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-sm">
+                    <Sparkles size={32} className="text-stone-300" />
                   </div>
-                  
-                  <div className="mt-2 flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-bold text-stone-500">AI 圖像提示詞 (Midjourney)</label>
-                      <Button 
-                        onClick={generateImagePrompt} 
-                        disabled={isGeneratingImagePrompt || fetchingPrompts || !prompts.step1}
-                        className="bg-stone-900 hover:bg-stone-800 text-white h-7 px-3 rounded text-[10px] font-bold transition-all flex shrink-0"
-                      >
-                        <Sparkles className={`w-3 h-3 mr-1.5 ${isGeneratingImagePrompt ? 'animate-spin' : ''}`}/>
-                        {isGeneratingImagePrompt ? "生成中..." : "生成提示詞"}
-                      </Button>
-                    </div>
-                    {imagePrompt && (
-                      <div className="relative">
-                        <textarea 
-                          readOnly
-                          value={imagePrompt}
-                          className="w-full bg-stone-100 rounded-lg p-3 text-xs text-stone-600 font-mono resize-y focus:outline-none border border-stone-200 min-h-[120px]"
-                        />
-                        <Button 
-                          onClick={() => {
-                            navigator.clipboard.writeText(imagePrompt);
-                            toast.success("已複製圖像提示詞");
-                            window.open("https://discord.com/channels/@me", "_blank");
-                          }} 
-                          className="absolute bottom-4 right-4 bg-amber-500 hover:bg-amber-400 text-stone-900 h-10 px-6 rounded-xl text-xs font-bold shadow-[0_4px_14px_0_rgba(245,158,11,0.39)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.23)] transition-all flex shrink-0"
-                        >
-                          <Copy className="w-3.5 h-3.5 mr-2"/> 複製並前往
-                          <ExternalLink className="w-3.5 h-3.5 ml-1.5 opacity-50" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  <p className="font-medium text-stone-500 tracking-wide">點擊右上角按鈕，即可一鍵產出完整圖文懶人包</p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}
