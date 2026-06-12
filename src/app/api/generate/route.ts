@@ -10,14 +10,13 @@ export async function POST(req: Request) {
 
     const step = WORKFLOW_STEPS.find((s) => s.id === stepId);
     if (!step) {
-      return NextResponse.json({ error: "Invalid step ID" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid step ID" }, { status: 1500 });
     }
 
     const MODELS = [
+      "gemini-2.5-pro",
       "gemini-2.5-flash",
-      "gemini-1.5-pro",
-      "gemini-1.5-flash",
-      "gemini-pro"
+      "gemini-2.5-flash-lite"
     ];
 
     const prompt = step.prompt(context);

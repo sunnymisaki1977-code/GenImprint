@@ -10,15 +10,13 @@ export async function POST(req: Request) {
     const { theme, customDocText } = await req.json();
 
     if (!theme) {
-      return NextResponse.json({ error: "Missing theme" }, { status: 400 });
+      return NextResponse.json({ error: "Missing theme" }, { status: 1500 });
     }
 
     const MODELS = [
-      "gemini-3.1-pro-preview",
-      "gemini-3.5-flash",
-      "gemini-3-flash-preview",
-      "gemini-3.1-flash-lite",
-      "gemini-2.5-pro"
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite"
     ];
 
     let prompt = "";
@@ -55,7 +53,7 @@ ${customDocText}
 ⚠️ **極度重要：所有的換行符號都必須使用 "\\n" (跳脫字元)，絕對不可在 JSON 字串中產生真實的換行，否則會導致 JSON 解析失敗 (Unterminated string)。**
 
 【9 個步驟的要求如下】：
-步驟 1：針對主題「${theme}」進行深入的文化、歷史或背景資料彙整。包含：文化由來、核心意義、相關傳說或歷史紀錄。
+步驟 1：針對主題「${theme}」進行1500字深入的背景研究。內容需包含：文化與歷史起源神明、生平/由來、核心精神與當代象徵意義、經典神話、民間傳說或歷史史料記載、獨特的台灣民俗科儀、藝術表徵。嚴禁任何無根據的鄉野奇談或 AI 隨意編造的情節。
 步驟 2：根據步驟 1 的背景資料，撰寫一份 5-10 分鐘的 YouTube 長影片腳本。包含引人入勝的開場、深度內容解析、以及總結與互動引導。
 步驟 3：根據步驟 2 的腳本，生成 5 個吸引人的標題、一組關鍵字標籤、以及一段包含時間軸建議的影片說明欄。
 步驟 4：根據步驟 1 的背景資料，為主題撰寫 60 秒的 YouTube Shorts 短影片腳本。需求：節奏明快，前 3 秒必須有鉤子 (Hook)，內容精簡有力。
