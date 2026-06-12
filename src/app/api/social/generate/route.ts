@@ -5,40 +5,60 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 export async function POST(req: Request) {
   try {
-    const { theme, step2Content } = await req.json();
+    const { theme, step1Content } = await req.json();
 
-    if (!theme || !step2Content) {
-      return NextResponse.json({ error: "Missing theme or step2Content" }, { status: 400 });
+    if (!theme || !step1Content) {
+      return NextResponse.json({ error: "Missing theme or step1Content" }, { status: 400 });
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const prompt = `你是一位「世代銘印」頻道的專屬文化策展人與內容生成專家。
-請針對主題「${theme}」生成跨平台的社群圖文推播文案。
-參考影片腳本背景：
-${step2Content}
+    const prompt = `你現在是首席視覺藝術總監與頂級社群文案主編。
+你的任務是根據下方的【基礎背景史料】，為主題「${theme}」打造一組「新國風彩墨」社群圖文懶人包。
 
-【語氣與排版核心指導原則】：
-1. 語氣設定：請以「儒家謙卑、傳統說書人」的口吻撰寫，傳遞文化溫度，切勿使用浮誇、煽情或怪力亂神的詞彙。
-2. 視覺純粹性：文案中嚴禁出現任何英文字母或程式標籤（Hashtags 例外，但請精簡）。
-3. 互動引導：請在文案最後溫和地引導信眾/讀者點擊連結觀看完整影片或前往網站。
+【基礎背景史料】：
+${step1Content}
 
-【格式絕對鎖定指令】：
-你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
-請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號（**）。
+請嚴格遵循以下三大任務與格式要求：
 
-請直接輸出以下格式：
+---
+### 任務一：生成動態視覺 Prompt (Midjourney / Imagen)
+請從史料中萃取 4 到 5 個最震撼的「歷史高光時刻 / 核心傳說」，將其轉化為畫面描述。
+**視覺公式（必須包含）**：
+- 傳統底蘊：colorful ink wash, rice paper texture.
+- 現代奇幻：energy flow, golden particles, neon ink.
+- 史詩構圖：documentary style layout, dynamic segmented composition (將你萃取的4-5個場景分割在同一畫面中).
+- 極致光影：cinematic lighting, strong chiaroscuro.
 
-### FB社群 (深度長文)
-貼文標題：[請填入具備文化底蘊的標題]
-貼文內文：[請填入 150-300 字左右的深度文化解說，段落分明]
-互動結語：[請填入溫和的引導語，並附上觀看連結預留位：https://...]
-主題標籤：[請填入 3-5 個相關的中文 Hashtag]
+### 任務二：提煉圖卡排版字卡
+字卡必須精簡有力，適合直接壓印在圖片的留白處，不要冗長。
 
-### LINE官方帳號 (早安問候短文)
-推播主旨：[請填入 20 字以內，適合手機推播預覽的溫暖問候]
-推播內文：[請填入 50-80 字左右的精簡問候]
-引導點擊：[請填入按鈕文字，例如：點此聆聽神明傳奇 ⬇️]`;
+### 任務三：撰寫社群發布正文
+使用生動、能引起現代人共鳴的語氣。將史料轉化為 3~5 點易讀的亮點解析，並以提問開場，以祈福導流收尾。
+
+---
+【格式絕對鎖定指令】（請直接輸出以下格式，禁止任何問候與結語）：
+
+### 🎨 第一部分：【視覺 Prompt 16:9】
+English: A masterpiece neo-Chinese fantasy illustration of ${theme}, documentary style layout, dynamic segmented composition with distinct epic panels. In the center, [請填入主角的威武/神聖姿態描述，加上發光氣場]. The background is divided into panels: [請根據史料，填入4-5個高光時刻的英文畫面描述]. Traditional Texture: colorful ink wash, thick impasto ink, rice paper texture. Modern Fantasy Effects: energy flow, golden particles crossing between panels. Cinematic Render: cinematic lighting, strong chiaroscuro, 8k, ultra-detailed --ar 16:9 --v 6.0 --style raw
+
+### 🎨 第一部分：【視覺 Prompt 9:16】
+English: A masterpiece neo-Chinese fantasy illustration of ${theme}, vertical scroll format, documentary style layout, dynamic segmented composition stacked vertically. The central focal point is [主角描述]. The background is divided by shattered glass effects into epic scenes: [請根據史料，填入4-5個高光時刻的英文畫面描述]. Traditional Texture: colorful ink wash, rice paper texture. Modern Fantasy Effects: neon ink, golden particles flowing upwards. Cinematic Render: dramatic backlighting, 8k, ultra-detailed --ar 9:16 --v 6.0 --style raw
+
+### 📝 第二部分：【圖卡排版字卡】
+主標題：[15字以內，包含主題名稱]
+副標題：[20字以內，點出核心精神]
+金句：[20字以內，極具情感張力的視覺引導句]
+
+### 📱 第三部分：【社群發布正文】
+[請填入帶有 Emoji 的 Hook 開場白，製造懸念或情感共鳴]
+
+[請條列 3-5 點核心亮點解析，每點包含一個小標題與兩句精簡解說，必須基於史料]
+
+[互動提問：請邀請粉絲留言分享經驗]
+祈福點燈、消災延壽，讓神明的靈光持續護佑您的日常 ➔ [此處自動帶入廟方數位功德箱/點燈連結]
+
+#世代銘印 #${theme} [請再補充 3-5 個相關的 Hashtags]`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;

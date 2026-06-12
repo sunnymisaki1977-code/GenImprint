@@ -125,8 +125,8 @@ export const SocialModule = () => {
   };
 
   const generateSocialPost = async () => {
-    if (!prompts.step2) {
-      toast.error("缺少 Step 2 影片腳本內容作為背景");
+    if (!prompts.step1) {
+      toast.error("缺少 Step 1 基礎背景研究內容作為背景");
       return;
     }
     const theme = pages.find(p => p.id === selectedPageId)?.title || "未知主題";
@@ -136,34 +136,13 @@ export const SocialModule = () => {
       const res = await fetch("/api/social/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ theme, step2Content: prompts.step2 }),
+        body: JSON.stringify({ theme, step1Content: prompts.step1 }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       
-      // Parse blocks
-      const text = data.content;
-      const blocks = text.split(/(?=###\s*(?:FB|LINE))/i);
-      let fb = "";
-      let line = "";
-      
-      for (const block of blocks) {
-        if (block.match(/###\s*FB社群/i)) {
-          fb = block.trim();
-        } else if (block.match(/###\s*LINE官方帳號/i)) {
-          line = block.trim();
-        }
-      }
-      
-      if (!fb && !line) {
-         const cleanBlocks = text.split(/(?=###)/).filter((b: string) => b.trim().length > 10);
-         fb = cleanBlocks[0] || text;
-         line = cleanBlocks[1] || "";
-      }
-      
-      setFbContent(fb);
-      setLineContent(line);
-      toast.success("成功生成社群貼文！");
+      setFbContent(data.content);
+      toast.success("成功生成社群圖文懶人包！");
     } catch (err: any) {
       toast.error("生成失敗: " + err.message);
     } finally {
@@ -360,21 +339,21 @@ export const SocialModule = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-bold text-stone-500">FB 貼文內容 (可編輯)</label>
+                    <label className="text-sm font-bold text-stone-500">社群圖文懶人包 (包含文案與提示詞)</label>
                     <Button 
                       onClick={generateSocialPost} 
-                      disabled={isGenerating || fetchingPrompts || !prompts.step2}
+                      disabled={isGenerating || fetchingPrompts || !prompts.step1}
                       className="bg-amber-500 hover:bg-amber-600 text-white h-8 px-4 rounded-lg font-bold shadow-sm"
                     >
                       <Sparkles size={14} className={`mr-1.5 ${isGenerating ? 'animate-spin' : ''}`} />
-                      {isGenerating ? "生成中..." : "AI 自動生成貼文"}
+                      {isGenerating ? "生成中..." : "AI 生成懶人包"}
                     </Button>
                   </div>
                   <textarea 
                     value={fbContent}
                     onChange={(e) => setFbContent(e.target.value)}
                     className="flex-1 w-full bg-white rounded-xl p-4 text-sm text-stone-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#1877F2]/50 border border-stone-200 leading-relaxed min-h-[250px]"
-                    placeholder="點擊上方「AI 自動生成貼文」..."
+                    placeholder="點擊上方「AI 生成懶人包」..."
                   />
                   
                   <div className="flex flex-col gap-2 mt-2">
