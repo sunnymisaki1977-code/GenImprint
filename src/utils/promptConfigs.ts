@@ -3,7 +3,7 @@ export interface WorkflowStep {
   title: string;
   description: string;
   prompt: (context: any) => string;
-  type: "text" | "code";
+  type: "text" | "code" | "social";
   language?: string;
   dependsOn: string[];
 }
