@@ -12,6 +12,7 @@ import { ChannelStats } from "@/components/ChannelStats";
 import { ExportModule } from "@/components/ExportModule";
 import { VisionModule } from "@/components/VisionModule";
 import { SunoModule } from "@/components/SunoModule";
+import { SocialVisionModule } from "@/components/SocialVisionModule";
 import { Tabs } from "@/components/Tabs";
 import { LockedOverlay } from "@/components/LockedOverlay";
 
@@ -185,6 +186,11 @@ export default function Home() {
           <div className={`relative w-full ${!isUnlocked ? 'h-full overflow-hidden' : 'min-h-full'}`}>
             <SunoModule />
             <LockedOverlay title="Suno 配樂" subtitle="解鎖專屬配樂產製與情緒節奏控制" />
+          </div>
+        ) : activeView === "social-vision" ? (
+          <div className={`relative w-full ${!isUnlocked ? 'h-full overflow-hidden' : 'min-h-full'}`}>
+            <SocialVisionModule />
+            <LockedOverlay title="社群視覺" subtitle="解鎖社群圖文配圖產製與 Notion 雲端同步" />
           </div>
         ) : null}
       </div>

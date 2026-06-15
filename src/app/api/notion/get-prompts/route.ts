@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       step7: "",
       step8: "",
       step9: "",
+      step10: "",
     };
 
     let currentStep: string | null = null;
@@ -52,6 +53,8 @@ export async function POST(req: Request) {
           currentStep = "step8";
         } else if (text.includes("Step 9")) {
           currentStep = "step9";
+        } else if (text.includes("Step 10") || text.includes("Step10")) {
+          currentStep = "step10";
         } else {
           currentStep = null; // stop collecting if it's another heading
         }

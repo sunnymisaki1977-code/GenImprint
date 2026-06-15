@@ -251,14 +251,8 @@ export const Workspace = () => {
               </div>
 
               <div className="flex-1 flex flex-col md:flex-row overflow-hidden gap-6 w-full">
-                {currentStep === 10 ? (
-                  <div className="flex-1 overflow-y-auto w-full custom-scrollbar pr-2">
-                    <SocialModule />
-                  </div>
-                ) : (
-                  <>
-                    {/* Left Column: Context */}
-                    <div className="w-full md:w-80 flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
+                {/* Left Column: Context */}
+                <div className="w-full md:w-80 flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
                 {/* Reference Area */}
                 <div className="flex-1 bg-white/30 backdrop-blur-md border border-white/30 rounded-2xl shadow-lg flex flex-col overflow-hidden">
                   <div className="bg-white/40 px-4 py-2 border-b border-white/30 flex items-center gap-2 backdrop-blur-md">
@@ -322,9 +316,7 @@ export const Workspace = () => {
                   </div>
                 </footer>
               </div>
-            </>
-          )}
-            </div>
+              </div>
             </motion.div>
           ) : (
             <motion.div
