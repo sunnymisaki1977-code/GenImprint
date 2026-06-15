@@ -42,7 +42,20 @@ ${customDocText}
 步驟 7：生成 3 組短影音 YouTube 縮圖設計 (9:16)。包含與步驟 6 相似的內容，但針對直式螢幕構圖。
 步驟 8：針對主題生成 3 組 16:9 彩墨風格意象圖的中英雙語繪圖提示詞，並各搭配一首七言四句詩詞。
 步驟 9：針對主題生成 3 組 Suno AI 音樂生成提示詞 (1.史詩感、2.敘事感、3.活力感)，需包含 Music Style 等參數。
-步驟 10：社群推播懶人包。這一步你【絕對不要】產生視覺 Prompt！你只需要提供兩部分內容，務必以「### 🖼️ 圖卡排版字卡」、「### 📱 社群發布正文」作為小標題：(1) ### 🖼️ 圖卡排版字卡：為 4~5 個高光時刻設計適合放在圖片上的短標題與一句話說明；(2) ### 📱 社群發布正文：包含 Hook 開場白、3-5點亮點解析、互動提問、祈福導流與 Hashtags。
+步驟 10：社群推播懶人包。請嚴格輸出三部分內容，務必以「### 🎨 視覺 Prompt」、「### 🖼️ 圖卡排版字卡」、「### 📱 社群發布正文」作為小標題：
+(1) ### 🎨 視覺 Prompt：請【直接套用以下文字模板】，並根據史料將中括號內的變數替換為真實內容：
+**16:9 動態分割構圖提示詞：**
+以「${theme}」為核心主角，設計一張結合【動態分割構圖（Dynamic Segmented Layout）】、【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】與【蒙太奇資訊圖表（Montage Infographic）】風格的高質感歷史解密海報。
+畫面中央為巨大主視覺（Hero Image），描繪「${theme}」最具代表性的經典形象，人物佔據畫面主要區域，神情充滿故事感與歷史厚度，呈現電影級史詩氛圍。
+使用彩色墨染、流動金色粒子、發光能量流、東方奇幻符號、金色流線、宣紙紋理、神話氣息、靈性能量、電影級光影、超高細節，將整體畫面動態切割成多個不規則區塊。
+各區塊以【重要時刻蒙太奇資訊圖表】形式呈現，描繪【主題】在不同時空、不同階段的關鍵事件，每個區塊皆有獨立背景、獨立人物互動與清楚的情節推進。
+畫面上方[請填主題名稱]，各區塊[請填重要時刻名稱]。
+整體構圖需像一份精緻的歷史解密專題、博物館展覽海報、紀錄片封面、雜誌特刊封面。
+
+**9:16 動態分割構圖提示詞：**
+(內容與上方完全相同，但請替換為 9:16 的直式需求，並同樣根據史料填入變數)
+(2) ### 🖼️ 圖卡排版字卡：為 4~5 個高光時刻設計適合放在圖片上的短標題與一句話說明；
+(3) ### 📱 社群發布正文：包含 Hook 開場白、3-5點亮點解析、互動提問、祈福導流與 Hashtags。
 
 請現在開始生成，並只回傳嚴格的 JSON 物件。`;
     } else {
@@ -63,7 +76,20 @@ ${customDocText}
 步驟 7：生成 3 組短影音 YouTube 縮圖設計 (9:16)。包含與步驟 6 相似的內容，但針對直式螢幕構圖。
 步驟 8：針對主題生成 3 組 16:9 彩墨風格意象圖的中英雙語繪圖提示詞，並各搭配一首七言四句詩詞。
 步驟 9：針對主題生成 3 組 Suno AI 音樂生成提示詞 (1.史詩感、2.敘事感、3.活力感)，需包含 Music Style 等參數。
-步驟 10：社群推播懶人包。這一步你【絕對不要】產生視覺 Prompt！你只需要提供兩部分內容，務必以「### 🖼️ 圖卡排版字卡」、「### 📱 社群發布正文」作為小標題：(1) ### 🖼️ 圖卡排版字卡：為 4~5 個高光時刻設計適合放在圖片上的短標題與一句話說明；(2) ### 📱 社群發布正文：包含 Hook 開場白、3-5點亮點解析、互動提問、祈福導流與 Hashtags。
+步驟 10：社群推播懶人包。請嚴格輸出三部分內容，務必以「### 🎨 視覺 Prompt」、「### 🖼️ 圖卡排版字卡」、「### 📱 社群發布正文」作為小標題：
+(1) ### 🎨 視覺 Prompt：請【直接套用以下文字模板】，並根據史料將中括號內的變數替換為真實內容：
+**16:9 動態分割構圖提示詞：**
+以「${theme}」為核心主角，設計一張結合【動態分割構圖（Dynamic Segmented Layout）】、【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】與【蒙太奇資訊圖表（Montage Infographic）】風格的高質感歷史解密海報。
+畫面中央為巨大主視覺（Hero Image），描繪「${theme}」最具代表性的經典形象，人物佔據畫面主要區域，神情充滿故事感與歷史厚度，呈現電影級史詩氛圍。
+使用彩色墨染、流動金色粒子、發光能量流、東方奇幻符號、金色流線、宣紙紋理、神話氣息、靈性能量、電影級光影、超高細節，將整體畫面動態切割成多個不規則區塊。
+各區塊以【重要時刻蒙太奇資訊圖表】形式呈現，描繪【主題】在不同時空、不同階段的關鍵事件，每個區塊皆有獨立背景、獨立人物互動與清楚的情節推進。
+畫面上方[請填主題名稱]，各區塊[請填重要時刻名稱]。
+整體構圖需像一份精緻的歷史解密專題、博物館展覽海報、紀錄片封面、雜誌特刊封面。
+
+**9:16 動態分割構圖提示詞：**
+(內容與上方完全相同，但請替換為 9:16 的直式需求，並同樣根據史料填入變數)
+(2) ### 🖼️ 圖卡排版字卡：為 4~5 個高光時刻設計適合放在圖片上的短標題與一句話說明；
+(3) ### 📱 社群發布正文：包含 Hook 開場白、3-5點亮點解析、互動提問、祈福導流與 Hashtags。
 
 請現在開始生成，並只回傳嚴格的 JSON 物件。`;
     }
@@ -91,81 +117,6 @@ ${customDocText}
           if (typeof parsedData[key] === "object" && parsedData[key] !== null) {
             parsedData[key] = JSON.stringify(parsedData[key], null, 2);
           }
-        }
-
-        // Inject static visual prompt for Step 10
-        if (parsedData["10"]) {
-          const visualPrompt = `### 🎨 視覺 Prompt
-**16:9 動態分割構圖提示詞：**
-以「${theme}」為核心主角，設計一張結合【動態分割構圖（Dynamic Segmented Layout）】、【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】與【蒙太奇資訊圖表（Montage Infographic）】風格的高質感歷史解密海報。
-
-畫面中央為巨大主視覺（Hero Image），描繪「${theme}」最具代表性的經典形象，人物佔據畫面主要區域，神情充滿故事感與歷史厚度，呈現電影級史詩氛圍。
-
-利用流動的金色能量、彩墨筆觸、古卷軸、龍形氣脈、書法墨痕、光芒裂縫或時空裂痕，將整體畫面動態分割成數個不規則區塊。
-
-各個區塊（Montage Panels）分別描繪「${theme}」人生中的重要時刻：
-• 出生背景
-• 求學階段
-• 關鍵轉折事件
-• 成名時刻
-• 重大歷史貢獻
-• 晚年境遇
-• 對後世影響
-
-每個區塊皆具有獨立場景與時代背景，並加入相關人物互動，形成時空交錯的敘事感。
-畫面上方預留大型標題區域。各分鏡旁保留數字序號與解說文字空間。
-整體版面猶如高級歷史紀錄片資訊圖表，具有閱讀導向與視覺敘事功能。
-
-風格設定：
-新國風彩墨藝術、東方美學、電影海報構圖、博物館級歷史圖解設計、史詩級敘事、金墨交融、細節豐富、超高解析度、精緻光影、戲劇性構圖、文化紀錄片風格、歷史解密專題設計、cinematic lighting, masterpiece, ultra detailed, storytelling illustration, infographic design, dynamic composition, elegant typography space, museum exhibition quality
-
-English Prompt（Professional Version）
-Create an epic historical infographic poster featuring ${theme} as the central figure.
-Combine: Dynamic Segmented Layout, Comic Book Splash Page with Insets, Montage Infographic Design.
-A massive hero image occupies the center of the composition, portraying the most iconic version of ${theme} with cinematic presence, emotional depth, and legendary charisma.
-The canvas is divided using dynamic visual elements such as: flowing golden energy streams, ancient scrolls, ink brush strokes, glowing calligraphy, celestial cracks of light, mystical dragon-shaped energy veins, temporal rifts.
-These irregular divisions create multiple montage panels surrounding the hero image.
-Each montage panel illustrates a significant chapter of the character's life: Origins and childhood, Education and early growth, Turning point of destiny, Rise to fame, Major achievements, Later years, Legacy and influence on future generations.
-Every panel contains unique environments, supporting characters, and contextual storytelling details to create a documentary-style timeline across different eras.
-Reserve a large title area at the top. Leave dedicated spaces beside each panel for numbered labels, chapter headings, and explanatory text.
-The overall composition should resemble a premium historical documentary infographic, combining educational clarity with cinematic storytelling.
-Style: New Chinese Ink Art, Eastern Fantasy, Historical Documentary Design, Museum Exhibition Poster, Cinematic Illustration, Epic Storytelling, Golden Ink Accents, Dynamic Layout, High Detail, Rich Atmosphere, Ultra Realistic Lighting, Historical Infographic, Masterpiece Composition, Premium Editorial Design, Cultural Heritage Illustration, cinematic lighting, ultra detailed, 8k, award-winning artwork, documentary style, storytelling montage, masterpiece, best quality, ultra detailed, dynamic segmented layout, comic splash page, montage infographic, storytelling composition, cinematic atmosphere, golden ink diffusion, historical documentary illustration, dramatic lighting, highly detailed background, educational poster design, museum exhibition quality, editorial infographic, 8k resolution, no watermark, no logo --ar 16:9 --v 6.0 --style raw
-
-**9:16 動態分割構圖提示詞：**
-以「${theme}」為核心主角，設計一張結合【動態分割構圖（Dynamic Segmented Layout）】、【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】與【蒙太奇資訊圖表（Montage Infographic）】風格的直式高質感歷史解密海報。
-
-畫面中央為巨大主視覺（Hero Image），描繪「${theme}」最具代表性的經典形象，人物佔據畫面主要區域，神情充滿故事感與歷史厚度，呈現電影級史詩氛圍。
-
-利用流動的金色能量、彩墨筆觸、古卷軸、龍形氣脈、書法墨痕、光芒裂縫或時空裂痕，將整體畫面動態分割成數個不規則區塊。
-
-各個區塊（Montage Panels）分別描繪「${theme}」人生中的重要時刻：
-• 出生背景
-• 求學階段
-• 關鍵轉折事件
-• 成名時刻
-• 重大歷史貢獻
-• 晚年境遇
-• 對後世影響
-
-每個區塊皆具有獨立場景與時代背景，並加入相關人物互動，形成時空交錯的敘事感。
-畫面上方預留大型標題區域。各分鏡旁保留數字序號與解說文字空間。
-整體版面猶如高級歷史紀錄片資訊圖表，具有閱讀導向與視覺敘事功能。
-
-風格設定：
-新國風彩墨藝術、東方美學、電影海報構圖、博物館級歷史圖解設計、史詩級敘事、金墨交融、細節豐富、超高解析度、精緻光影、戲劇性構圖、文化紀錄片風格、歷史解密專題設計、cinematic lighting, masterpiece, ultra detailed, storytelling illustration, infographic design, dynamic composition, elegant typography space, museum exhibition quality
-
-English Prompt（Professional Version）
-Create an epic historical infographic poster featuring ${theme} as the central figure, vertical scroll format.
-Combine: Dynamic Segmented Layout, Comic Book Splash Page with Insets, Montage Infographic Design.
-A massive hero image occupies the center of the composition, portraying the most iconic version of ${theme} with cinematic presence, emotional depth, and legendary charisma.
-The canvas is divided using dynamic visual elements such as: flowing golden energy streams, ancient scrolls, ink brush strokes, glowing calligraphy, celestial cracks of light, mystical dragon-shaped energy veins, temporal rifts.
-These irregular divisions create multiple montage panels surrounding the hero image.
-Each montage panel illustrates a significant chapter of the character's life: Origins and childhood, Education and early growth, Turning point of destiny, Rise to fame, Major achievements, Later years, Legacy and influence on future generations.
-Every panel contains unique environments, supporting characters, and contextual storytelling details to create a documentary-style timeline across different eras.
-Reserve a large title area at the top. Leave dedicated spaces beside each panel for numbered labels, chapter headings, and explanatory text.
-The overall composition should resemble a premium historical documentary infographic, combining educational clarity with cinematic storytelling.
-Style: New Chinese Ink Art, Eastern Fantasy, Historical Documentary Design, Museum Exhibition Poster, Cinematic Illustration, Epic Storytelling, Golden Ink Accents, Dynamic Layout, High Detail, Rich Atmosphere, Ultra Realistic Lighting, Historical Infographic, Masterpiece Composition, Premium Editorial Design, Cultural Heritage Illustration, cinematic lighting, ultra detailed, 8k, award-winning artwork, documentary style, storytelling montage, masterpiece, best quality, ultra detailed, dynamic segmented layout, comic splash page, montage infographic, storytelling composition, cinematic atmosphere, golden ink diffusion, historical documentary illustration, dramatic lighting, highly detailed background, educational poster design, museum exhibition quality, editorial infographic, 8k resolution, no watermark, no logo --ar 9:16 --v 6.0 --style raw\n\n`;
-          parsedData["10"] = visualPrompt + parsedData["10"];
         }
         
         return NextResponse.json({ data: parsedData, modelUsed: modelName });
