@@ -24,7 +24,10 @@ export async function POST(req: Request) {
     const MAX_RETRIES = 5;
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       const modelName = MODELS[attempt - 1] || MODELS[0];
-      const model = genAI.getGenerativeModel({ model: modelName });
+      const model = genAI.getGenerativeModel({ 
+        model: modelName,
+        tools: [{ googleSearch: {} }]
+      });
 
       try {
         const result = await model.generateContent(prompt);

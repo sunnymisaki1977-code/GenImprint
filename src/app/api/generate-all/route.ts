@@ -45,9 +45,9 @@ ${customDocText}
 步驟 10：社群推播懶人包。請嚴格輸出三部分內容，務必以「### 🎨 視覺 Prompt」、「### 🖼️ 圖卡排版字卡」、「### 📱 社群發布正文」作為小標題：
 (1) ### 🎨 視覺 Prompt：請【直接套用以下文字模板】，並根據史料將中括號內的變數替換為真實內容：
 **16:9 動態分割構圖提示詞：**
-以「${theme}」為核心主角，設計一張結合【動態分割構圖（Dynamic Segmented Layout）】、【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】與【蒙太奇資訊圖表（Montage Infographic）】風格的史詩般、多面板的彩墨畫，採用紀錄片風格的構圖
+以「${theme}」為核心主角，從前面的「步驟 1：背景研究」史料萃取五個【蒙太奇資訊】生成16:9 彩墨風格,五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成【蒙太奇資訊圖表（Montage Infographic）】
 
-請從前面的「步驟 1：背景研究」史料萃取五個【蒙太奇資訊】進行彩墨構圖：
+
 **主標題：**[請填入主標題]
 
 1. **畫格 1：** [蒙太奇資訊名稱 1]
@@ -96,9 +96,9 @@ ${customDocText}
 步驟 10：社群推播懶人包。請嚴格輸出三部分內容，務必以「### 🎨 視覺 Prompt」、「### 🖼️ 圖卡排版字卡」、「### 📱 社群發布正文」作為小標題：
 (1) ### 🎨 視覺 Prompt：請【直接套用以下文字模板】，並根據史料將中括號內的變數替換為真實內容：
 **16:9 動態分割構圖提示詞：**
-以「${theme}」為核心主角，設計一張結合【動態分割構圖（Dynamic Segmented Layout）】、【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】與【蒙太奇資訊圖表（Montage Infographic）】風格的史詩般、多面板的彩墨畫，採用紀錄片風格的構圖
+以「${theme}」為核心主角，從前面的「步驟 1：背景研究」史料萃取五個【蒙太奇資訊】生成16:9 彩墨風格,五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成【蒙太奇資訊圖表（Montage Infographic）】
 
-請從前面的「步驟 1：背景研究」史料萃取五個【蒙太奇資訊】進行彩墨構圖：
+
 **主標題：**[請填入主標題]
 
 1. **畫格 1：** [蒙太奇資訊名稱 1]
@@ -134,6 +134,7 @@ ${customDocText}
       const modelName = MODELS[attempt - 1] || MODELS[0];
       const model = genAI.getGenerativeModel({ 
         model: modelName,
+        tools: [{ googleSearch: {} }],
         generationConfig: {
           responseMimeType: "application/json",
           maxOutputTokens: 8192,
