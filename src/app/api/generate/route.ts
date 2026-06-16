@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     }
 
     const MODELS = [
-      "gemini-2.5-pro",
+      "gemini-3.1-flash-live-preview",
       "gemini-2.5-flash",
       "gemini-2.5-flash-lite"
     ];
