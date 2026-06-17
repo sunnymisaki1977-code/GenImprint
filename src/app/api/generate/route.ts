@@ -14,25 +14,45 @@ export async function POST(req: Request) {
     }
 
     const MODELS = [
-      "gemini-3.5-flash",
-      "gemini-3.1-pro-preview",
-      "gemini-3.1-flash-lite"
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite"
     ];
 
-    const prompt = step.prompt(context);
+    // 取得原始 prompt
+    let prompt = step.prompt(context);
+
+    // 🚨 修正 1：在這裡強制加上「選擇 A」的最嚴厲格式警告！
+    // 這樣就算你在 utils 裡面的 prompt 忘記寫，API 層也會確保送出這段約束。
+    prompt += `\n\n⚠️極度重要：請直接輸出純 JSON 字串，前後【絕對不要】使用 Markdown 的 \`\`\`json 與 \`\`\` 標記包裝，也不要有任何其他文字說明！`;
 
     const MAX_RETRIES = 5;
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       const modelName = MODELS[attempt - 1] || MODELS[0];
-      const model = genAI.getGenerativeModel({ 
-        model: modelName,
-        tools: [{ googleSearch: {} } as any]
-      });
+      
+      // 🛠️ 1. 初始化模型參數物件
+      const modelParams: any = { model: modelName };
+
+      // 🛠️ 2. 動態判斷是否為步驟 1 
+      const isStep1 = stepId === "step1" || stepId === 1 || String(stepId).toLowerCase().includes("step1");
+      
+      if (isStep1) {
+        modelParams.tools = [{ googleSearch: {} }];
+        // 確保這裡維持註解或刪除，絕對不傳入 responseMimeType
+        // modelParams.generationConfig = { responseMimeType: "application/json" };
+      }
+      
+      const model = genAI.getGenerativeModel(modelParams);
 
       try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const text = response.text();
+        let text = response.text();
+
+        // 🚨 修正 2：使用 Regex 清理模型不聽話硬加的 Markdown 代碼區塊標記
+        // 這是「選擇 A」最重要的保險絲，確保前端拿到的是乾淨的 JSON 字串
+        text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+
         return NextResponse.json({ text, modelUsed: modelName });
       } catch (err: any) {
         const errorMsg = err.message || "";

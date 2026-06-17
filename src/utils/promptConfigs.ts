@@ -203,9 +203,10 @@ ${ctx.step1}
 
 ### 🎨 視覺 Prompt
 **16:9 動態分割構圖提示詞：**
-以「${ctx.theme}」為核心主角，設計一張結合【動態分割構圖（Dynamic Segmented Layout）】、【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】與【蒙太奇資訊圖表（Montage Infographic）】風格的史詩般、多面板的彩墨畫，採用紀錄片風格的構圖
+以「${ctx.theme}」為核心主角，從${ctx.step1}萃取五個【蒙太奇資訊】生成16:9 彩墨風格,五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成【蒙太奇資訊圖表（Montage Infographic）】
 
-請從${ctx.step1}萃取五個【蒙太奇資訊】進行彩墨構圖：
+
+
 **主標題：**[請填入主標題]
 
 1. **畫格 1：** [蒙太奇資訊名稱 1]
@@ -225,9 +226,8 @@ ${ctx.step1}
  **視覺描述：**[請填入視覺描述中文 Prompt]
 
 **9:16 動態分割構圖提示詞：**
-以「${ctx.theme}」為核心主角，設計一張結合【動態分割構圖（Dynamic Segmented Layout）】、【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】與【蒙太奇資訊圖表（Montage Infographic）】風格的史詩般、多面板的彩墨畫，採用紀錄片風格的構圖
+以「${ctx.theme}」為核心主角，從${ctx.step1}萃取五個【蒙太奇資訊】生成16:9 彩墨風格,五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成【蒙太奇資訊圖表（Montage Infographic）】
 
-請從${ctx.step1}萃取五個【蒙太奇資訊】進行彩墨構圖：
 **主標題：**[請填入主標題]
 
 1. **畫格 1：** [蒙太奇資訊名稱 1]

@@ -22,12 +22,12 @@ ${step1Content}
 一、核心指令公式 (需全部包含，請根據主題進行細節變化)：
 1. 傳統材質底蘊：colorful ink wash (多彩水墨), rice paper texture (宣紙紋理).
 2. 現代奇幻特效：energy flow (能量流動), golden particles (金色粒子), neon ink.
-3. 高動態構圖：dynamic segmented layout (動態分割構圖), shattered glass effect (碎玻璃分割效果).
+3. 高動態構圖：動態分割構圖 (Dynamic Segmented Layout), 美式漫畫跨頁插圖 (Comic Book Splash Page with Insets), 蒙太奇資訊圖表 (Montage Infographic)
 4. 極致光影渲染：cinematic lighting (電影級光影), strong chiaroscuro (強烈明暗對比).
 
 二、格式絕對鎖定指令（禁止開場白與結語，直接輸出以下格式）：
 ### 【${theme}】
-設計構想：[請簡短用中文解釋你如何安排高光時刻的分鏡，以及如何運用碎玻璃效果與水墨能量流動串連畫面]
+設計構想：[請簡短用中文解釋你如何安排高光時刻的分鏡]
 English：[請填入完整、可供 Midjourney 使用的英文 Prompt，包含角色、分鏡的環境細節、動態構圖、材質、光影關鍵字，結尾加上 --ar 16:9 --v 6.0 --style raw]`;
 
     const result = await model.generateContent(prompt);

@@ -14,9 +14,9 @@ export async function POST(req: Request) {
     }
 
     const MODELS = [
-      "gemini-3.5-flash",
-      "gemini-3.1-pro-preview",
-      "gemini-3.1-flash-lite"
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite"
     ];
 
     let prompt = "";
@@ -47,25 +47,17 @@ ${customDocText}
 **16:9 動態分割構圖提示詞：**
 以「${theme}」為核心主角，從前面的「步驟 1：背景研究」史料萃取五個【蒙太奇資訊】生成16:9 彩墨風格,五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成【蒙太奇資訊圖表（Montage Infographic）】
 
-
 **主標題：**[請填入主標題]
-
 1. **畫格 1：** [蒙太奇資訊名稱 1]
-
  **視覺描述：**[請填入視覺描述中文 Prompt]
 2. **畫格 2：** [蒙太奇資訊名稱 2]
-
  **視覺描述：**[請填入視覺描述中文 Prompt]
 3. **畫格 3：** [蒙太奇資訊名稱 3]
-
  **視覺描述：**[請填入視覺描述中文 Prompt]
 4. **畫格 4：** [蒙太奇資訊名稱 4]
-
  **視覺描述：**[請填入視覺描述中文 Prompt]
 5. **畫格 5：** [蒙太奇資訊名稱 5]
-
  **視覺描述：**[請填入視覺描述中文 Prompt]
-
 
 **9:16 動態分割構圖提示詞：**
 (內容與上方完全相同，但請替換為 9:16 的直式需求，並同樣根據史料填入變數)
@@ -74,7 +66,8 @@ ${customDocText}
 
 請現在開始生成，並只回傳嚴格的 JSON 物件。
 
-⚠️極度重要：所有的 value 必須都是【單一的純文字字串(String)】(可使用 Markdown 格式)，絕對不可在步驟 1~10 的 value 裡面建立巢狀的 JSON Object 或 Array！例如步驟 3 如果需要標題與關鍵字，請直接在一行行文字裡用 Markdown 排版，絕對不要產生 "titles": [] 這樣的陣列！`;
+⚠️極度重要：所有的 value 必須都是【單一的純文字字串(String)】(可使用 Markdown 格式)，絕對不可在步驟 1~10 的 value 裡面建立巢狀的 JSON Object 或 Array！
+⛔⛔ 絕對禁止：請直接輸出純 JSON 字串，前後【絕對不要】使用 Markdown 的 \`\`\`json 與 \`\`\` 標記包裝，也不要有任何其他文字說明！⛔⛔`;
     } else {
       prompt = `你是一位「世代銘印」頻道的專屬文化策展人與內容生成專家。
 現在我們要為主題「${theme}」進行一個 10 步驟的內容生產流程。
@@ -98,25 +91,17 @@ ${customDocText}
 **16:9 動態分割構圖提示詞：**
 以「${theme}」為核心主角，從前面的「步驟 1：背景研究」史料萃取五個【蒙太奇資訊】生成16:9 彩墨風格,五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成【蒙太奇資訊圖表（Montage Infographic）】
 
-
 **主標題：**[請填入主標題]
-
 1. **畫格 1：** [蒙太奇資訊名稱 1]
-
  **視覺描述：**[請填入視覺描述中文 Prompt]
 2. **畫格 2：** [蒙太奇資訊名稱 2]
-
  **視覺描述：**[請填入視覺描述中文 Prompt]
 3. **畫格 3：** [蒙太奇資訊名稱 3]
-
  **視覺描述：**[請填入視覺描述中文 Prompt]
 4. **畫格 4：** [蒙太奇資訊名稱 4]
-
  **視覺描述：**[請填入視覺描述中文 Prompt]
 5. **畫格 5：** [蒙太奇資訊名稱 5]
-
  **視覺描述：**[請填入視覺描述中文 Prompt]
-
 
 **9:16 動態分割構圖提示詞：**
 (內容與上方完全相同，但請替換為 9:16 的直式需求，並同樣根據史料填入變數)
@@ -125,7 +110,8 @@ ${customDocText}
 
 請現在開始生成，並只回傳嚴格的 JSON 物件。
 
-⚠️極度重要：所有的 value 必須都是【單一的純文字字串(String)】(可使用 Markdown 格式)，絕對不可在步驟 1~10 的 value 裡面建立巢狀的 JSON Object 或 Array！例如步驟 3 如果需要標題與關鍵字，請直接在一行行文字裡用 Markdown 排版，絕對不要產生 "titles": [] 這樣的陣列！`;
+⚠️極度重要：所有的 value 必須都是【單一的純文字字串(String)】(可使用 Markdown 格式)，絕對不可在步驟 1~10 的 value 裡面建立巢狀的 JSON Object 或 Array！
+⛔⛔ 絕對禁止：請直接輸出純 JSON 字串，前後【絕對不要】使用 Markdown 的 \`\`\`json 與 \`\`\` 標記包裝，也不要有任何其他文字說明！⛔⛔`;
     }
 
     let text = "";
@@ -134,7 +120,12 @@ ${customDocText}
       const modelName = MODELS[attempt - 1] || MODELS[0];
       const model = genAI.getGenerativeModel({ 
         model: modelName,
-        tools: [{ googleSearch: {} } as any],
+        tools: [
+          {
+            googleSearch: {},
+          },
+        ],
+        // 🚨 修正 1：移除了 responseMimeType: "application/json"，避開 400 Bad Request
         generationConfig: {
           maxOutputTokens: 8192,
         }
@@ -145,9 +136,10 @@ ${customDocText}
         const response = await result.response;
         text = response.text();
         
-        // Remove markdown backticks if AI outputs them
-        text = text.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
-        const parsedData = JSON.parse(text);
+        // 🚨 修正 2：加入防呆機制，清理模型不聽話硬加的 Markdown 代碼區塊標記
+        const cleanedText = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+        
+        const parsedData = JSON.parse(cleanedText);
         
         // Ensure all values are strings to prevent React rendering errors
         for (const key in parsedData) {
@@ -156,14 +148,14 @@ ${customDocText}
             const convertObjToMarkdown = (obj: any) => {
               for (const subKey in obj) {
                 if (Array.isArray(obj[subKey])) {
-                  markdown += "**" + subKey + "**:\\n";
-                  obj[subKey].forEach((item: any) => markdown += "- " + item + "\\n");
-                  markdown += "\\n";
+                  markdown += "**" + subKey + "**:\n";
+                  obj[subKey].forEach((item: any) => markdown += "- " + item + "\n");
+                  markdown += "\n";
                 } else if (typeof obj[subKey] === "object" && obj[subKey] !== null) {
-                  markdown += "**" + subKey + "**:\\n";
+                  markdown += "**" + subKey + "**:\n";
                   convertObjToMarkdown(obj[subKey]);
                 } else {
-                  markdown += "**" + subKey + "**:\\n" + obj[subKey] + "\\n\\n";
+                  markdown += "**" + subKey + "**:\n" + obj[subKey] + "\n\n";
                 }
               }
             };
@@ -175,6 +167,7 @@ ${customDocText}
         return NextResponse.json({ data: parsedData, modelUsed: modelName });
       } catch (err: any) {
         const errorMsg = err.message || "";
+        // 將 JSON 解析錯誤 (SyntaxError) 也納入重試條件
         const shouldRetry = errorMsg.includes("503") || errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("not found") || err instanceof SyntaxError || err.name === 'SyntaxError';
         
         if (shouldRetry && attempt < MAX_RETRIES) {
@@ -195,7 +188,3 @@ ${customDocText}
     return NextResponse.json({ error: errorMsg || "AI Batch Generation failed" }, { status: 500 });
   }
 }
-
-
-
-
