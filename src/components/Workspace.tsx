@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useWorkflow } from "@/context/WorkflowContext";
 import { WORKFLOW_STEPS } from "@/utils/promptConfigs";
 import { Button, Skeleton, cn } from "./ui";
@@ -17,6 +17,7 @@ export const Workspace = () => {
   const { currentStep, setCurrentStep, stepsData, updateStepData, getStepContext, theme } = useWorkflow();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAutoGenerating, setIsAutoGenerating] = useState(false);
+  const hasStartedAutoGenerate = useRef(false);
   const [autoProgress, setAutoProgress] = useState(0);
   const [isArchiving, setIsArchiving] = useState(false);
   const [editedContent, setEditedContent] = useState("");
@@ -117,7 +118,8 @@ export const Workspace = () => {
   // Trigger auto-generate if we just entered Step 1 and it's empty, OR entered Step 2 and it's empty but Step 1 has custom document (Mode B)
   useEffect(() => {
     if ((currentStep === 1 && !stepsData[1]) || (currentStep === 2 && !stepsData[2] && stepsData[1])) {
-      if (!isAutoGenerating) {
+      if (!isAutoGenerating && !hasStartedAutoGenerate.current) {
+        hasStartedAutoGenerate.current = true;
         startAutoGenerate();
       }
     }
