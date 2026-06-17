@@ -70,41 +70,47 @@ export const Workspace = () => {
     }
   };
 
-  const startAutoGenerate = async () => {
+  const startAutoGenerate = async (startFromStep: number = 1) => {
     setIsAutoGenerating(true);
-    setAutoProgress(1);
-    setCurrentStep(1);
+    setAutoProgress(startFromStep);
+    setCurrentStep(startFromStep);
     
-    // Start a visual timer to cycle through steps 1-10 to simulate progress
+    // Start a visual timer to cycle through steps to simulate progress
     const visualTimer = setInterval(() => {
-      setAutoProgress((prev) => (prev < 10 ? prev + 1 : 1));
-      setCurrentStep((prev) => (prev < 10 ? prev + 1 : 1));
+      setAutoProgress((prev) => (prev < 10 ? prev + 1 : startFromStep));
+      setCurrentStep((prev) => (prev < 10 ? prev + 1 : startFromStep));
     }, 3500);
     
     try {
       const res = await fetch("/api/generate-all", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ theme, customDocText: stepsData[1] || "" }),
+        body: JSON.stringify({ theme, customDocText: stepsData[1] || "", startFromStep, existingData: stepsData }),
       });
 
       const json = await res.json();
       clearInterval(visualTimer);
       
-      if (json.error) throw new Error(json.error);
+      // 如果有錯誤，且沒有伴隨部分資料，則拋出例外
+      if (json.error && !json.isPartial) throw new Error(json.error);
 
-      const newData = json.data;
+      const newData = json.data || {};
       
-      // Update all 10 steps sequentially
-      for (let i = 1; i <= 10; i++) {
+      // Update steps sequentially
+      for (let i = startFromStep; i <= 10; i++) {
          if (newData[i]) {
             updateStepData(i, newData[i]);
          }
       }
       
-      setCurrentStep(1);
-      setEditedContent(stepsData[1] || newData[1] || "");
-      toast.success("全自動生成完成！您可以開始審閱與編輯。");
+      setCurrentStep(startFromStep);
+      setEditedContent(stepsData[startFromStep] || newData[startFromStep] || "");
+      
+      if (json.isPartial) {
+        toast.error(`部分生成成功，後續步驟因 API 限制中斷。您可以確認目前步驟後，點擊下一步接續生成。`, { duration: 5000 });
+      } else {
+        toast.success("全自動生成完成！您可以開始審閱與編輯。");
+      }
     } catch (err: any) {
       clearInterval(visualTimer);
       console.error("Auto generate failed", err);
@@ -128,8 +134,14 @@ export const Workspace = () => {
   const handleConfirmNext = () => {
     updateStepData(currentStep, editedContent);
     if (currentStep < 10) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
       toast.success("已確認，進入下一步");
+      
+      // 如果下一步是空的，自動發起斷點接續生成
+      if (!stepsData[nextStep] && !isAutoGenerating) {
+        startAutoGenerate(nextStep);
+      }
     }
   };
 
