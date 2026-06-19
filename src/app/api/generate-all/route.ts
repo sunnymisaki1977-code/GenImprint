@@ -1,4 +1,4 @@
-﻿import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
@@ -208,6 +208,13 @@ if (startFromStep <= 1) prompt += `\n步驟 1：根據上方提供的【基礎�
     const cleanedText = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
     try {
       const parsedData = JSON.parse(cleanedText);
+      for (const key in parsedData) {
+        if (typeof parsedData[key] === "object" && parsedData[key] !== null) {
+          parsedData[key] = JSON.stringify(parsedData[key], null, 2);
+        } else if (typeof parsedData[key] !== "string") {
+          parsedData[key] = String(parsedData[key]);
+        }
+      }
       return NextResponse.json({ 
         data: parsedData, 
         modelUsed: modelUsed,
