@@ -36,7 +36,20 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { theme, currentStep, stepsData, isUnlocked } = JSON.parse(saved);
       if (theme) setTheme(theme);
       if (currentStep) setCurrentStep(currentStep);
-      if (stepsData) setStepsData(stepsData);
+      if (stepsData) {
+        // Sanitize any corrupted localStorage data where AI returned an object instead of a string
+        const sanitizedData: Record<number, string> = {};
+        for (const key in stepsData) {
+          if (typeof stepsData[key] === 'object' && stepsData[key] !== null) {
+            sanitizedData[Number(key)] = JSON.stringify(stepsData[key], null, 2);
+          } else if (typeof stepsData[key] !== 'string') {
+            sanitizedData[Number(key)] = String(stepsData[key]);
+          } else {
+            sanitizedData[Number(key)] = stepsData[key];
+          }
+        }
+        setStepsData(sanitizedData);
+      }
       if (isUnlocked) setIsUnlocked(isUnlocked);
     }
   }, []);
