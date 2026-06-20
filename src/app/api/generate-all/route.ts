@@ -1,66 +1,28 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { fetchWithModelFallback } from "@/utils/modelFallback";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+export const maxDuration = 60;
 
-// 注意：Vercel 免費版 (Hobby) 強制限制為 10-15 秒，此行在免費版雖無實質作用，但留著明確表達意圖
-export const maxDuration = 60; 
-
-// ==========================================
-// 🌟 核心功能：模型降級輪替機制
-// ==========================================
-async function fetchWithModelFallback(prompt: string, options: { useSearch?: boolean } = {}) {
-  // 模型優先順序：Pro -> Flash -> Flash-Lite
-  const MODELS = [
-    "gemini-2.5-pro",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite"
-  ];
-
-  for (let attempt = 0; attempt < MODELS.length; attempt++) {
-    const modelName = MODELS[attempt];
-    try {
-      const modelParams: any = { model: modelName };
-
-      // 判斷是否需要開啟 Google Search (第一階段專用)
-      if (options.useSearch) {
-        modelParams.tools = [{ googleSearch: {} }];
-      } else {
-        // 第二階段：確保長文本輸出的 Token 上限，並【強制開啟官方 JSON 模式】 🌟
-        // 這能大幅加快生成速度，且絕對不會產生 ```json 標籤
-        modelParams.generationConfig = { 
-          maxOutputTokens: 8192,
-          responseMimeType: "application/json" 
-        };
+function salvagePartialJSON(text: string) {
+  try {
+    let clean = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+    let partialJSON = '{';
+    let foundAny = false;
+    for (let i = 1; i <= 10; i++) {
+      const regex = new RegExp(`"${i}"\\s*:\\s*"([^"]*)"`, 'g');
+      const match = regex.exec(clean);
+      if (match) {
+        if (foundAny) partialJSON += ',';
+        partialJSON += `"${i}": "${match[1].replace(/\\n/g, '\\\\n').replace(/"/g, '\\"')}"`;
+        foundAny = true;
       }
-
-      const model = genAI.getGenerativeModel(modelParams);
-      console.log(`[API 呼叫] 嘗試使用模型: ${modelName}`);
-
-      const result = await model.generateContent(prompt);
-      
-      // 成功生成，回傳結果與「最終成功使用的模型名稱」
-      return { result, modelUsed: modelName };
-
-    } catch (err: any) {
-      const errorMsg = err.message || "";
-      console.warn(`[API 警告] 模型 ${modelName} 發生錯誤 (${errorMsg})`);
-
-      // 判斷是否為可以重試/切換的錯誤 (429 額度不足 或 503 伺服器忙碌)
-      const shouldFallback = errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("503");
-
-      // 如果已經試到最後一個模型，或者錯誤類型不適合重試 (例如 400 語法錯誤)，則直接拋出錯誤
-      if (attempt === MODELS.length - 1 || !shouldFallback) {
-        throw err;
-      }
-
-      // 切換模型前，稍微暫停 2 秒鐘，避免瞬間連續請求再次被擋
-      console.log(`[API 輪替] 準備降級，切換至備用模型...`);
-      await new Promise(res => setTimeout(res, 2000));
     }
+    partialJSON += '}';
+    if (foundAny) return JSON.parse(partialJSON);
+  } catch (e) {
+    console.error("Salvage failed", e);
   }
-  
-  throw new Error("所有備用模型皆無法完成請求");
+  return null;
 }
 
 export async function POST(req: Request) {
@@ -72,26 +34,6 @@ export async function POST(req: Request) {
     }
 
     let verifiedContext = customDocText || "";
-
-    // ==========================================
-    // Stage 1: 專注事實查核 (只有當沒有自訂文獻時才執行)
-    // ==========================================
-    if (!verifiedContext && startFromStep <= 1) {
-      const researchPrompt = `
-你是一位嚴謹的台灣民俗與歷史學家。請使用 Google Search 徹底調查主題：「${theme}」。
-請注意，這類名詞常有字面誤導（例如數字不代表數量，姓氏不代表特定歷史名人）。
-請提供一份約 800 字的精確事實報告，必須涵蓋：
-1. 該信仰/名詞的「真實定義」與「數量」（如：五年千歲實際上是幾位？五年代表什麼？）。
-2. 該神祇的歷史起源、生平背景（切勿與民間小說人物混淆，若無明確文獻請說明「由來不可考或具多種說法」）。
-3. 核心精神、獨特科儀（如：馬鳴山鎮安宮的吃飯擔、建醮，請確認是否真的有王船祭）。
-4. 藝術表徵。
-請絕對基於搜尋到的客觀事實撰寫，嚴禁任何 AI 腦補。`;
-      
-      console.log("[Stage 1] 開始查核...");
-      const { result: researchResult } = await fetchWithModelFallback(researchPrompt, { useSearch: true });
-      verifiedContext = researchResult.response.text();
-      console.log("[Stage 1] 事實查核完成");
-    }
 
     // ==========================================
     // Stage 2: 專注格式化與創意生成

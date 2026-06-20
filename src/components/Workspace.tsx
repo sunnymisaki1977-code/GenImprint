@@ -98,56 +98,88 @@ export const Workspace = () => {
     }, 3500);
     
     try {
-      const res = await fetch("/api/generate-all", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          theme, 
-          customDocText: stepsData[1] || "",
-          startFromStep,
-          existingData: isResume ? stepsData : {}
-        }),
-      });
+      let currentDocText = stepsData[1] || "";
 
-      if (!res.ok) {
-        const text = await res.text();
-        if (res.status === 504 || text.includes("An error occurred")) {
-          throw new Error("伺服器回應逾時 (504 Gateway Timeout)！\n這通常是因為您部署在 Vercel 免費版，其 API 執行時間被嚴格限制在 10 秒內，而 AI 生成全部內容需要較長時間。建議您在「本地端 (localhost)」執行，或升級 Vercel 方案。");
+      // 動作 1: 若沒有自訂文獻且從第 1 步開始，先請求 /api/generate-context 進行查核
+      if (startFromStep === 1 && !currentDocText) {
+        const ctxRes = await fetch("/api/generate-context", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ theme }),
+        });
+
+        if (!ctxRes.ok) {
+           const text = await ctxRes.text();
+           try {
+             const errJson = JSON.parse(text);
+             throw new Error(errJson.error || "文獻查核失敗");
+           } catch {
+             throw new Error(text || "文獻查核失敗");
+           }
         }
-        if (text.includes("<!DOCTYPE") || text.includes("<html")) {
-          throw new Error(`伺服器發生異常 (${res.status})，傳回了非 JSON 格式的內容。`);
-        }
-        // 若是有明確的 error json，嘗試解析它
-        try {
-          const errJson = JSON.parse(text);
-          throw new Error(errJson.error || "未知錯誤");
-        } catch {
-          throw new Error(text || "未知錯誤");
-        }
+        
+        const ctxJson = await ctxRes.json();
+        currentDocText = ctxJson.data;
+        updateStepData(1, currentDocText);
+        startFromStep = 2; // Stage 1 結束，推進到 Stage 2
       }
 
-      const json = await res.json();
-      clearInterval(visualTimer);
-      
-      if (json.error && !json.isPartial) throw new Error(json.error);
+      // 動作 2: 若還沒完成 (startFromStep <= 10)，請求 /api/generate-all (排版與生成)
+      if (startFromStep <= 10) {
+        const res = await fetch("/api/generate-all", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            theme, 
+            customDocText: currentDocText,
+            startFromStep,
+            existingData: { ...stepsData, 1: currentDocText }
+          }),
+        });
 
-      const newData = json.data;
-      
-      // Update all 10 steps sequentially
-      let lastSuccessStep = startFromStep - 1;
-      for (let i = startFromStep; i <= 10; i++) {
-         if (newData[i]) {
-            updateStepData(i, newData[i]);
-            lastSuccessStep = i;
-         }
-      }
-      
-      if (json.isPartial) {
-        setCurrentStep(lastSuccessStep + 1 > 10 ? 10 : lastSuccessStep + 1);
-        toast.error(`自動生成中斷！已為您自動存檔至第 ${lastSuccessStep} 步。您可以點擊左側「接續全自動生成」繼續。`);
+        if (!res.ok) {
+          const text = await res.text();
+          if (res.status === 504 || text.includes("An error occurred")) {
+            throw new Error("伺服器回應逾時 (504 Gateway Timeout)！\n這通常是因為您部署在 Vercel 免費版，其 API 執行時間被嚴格限制在 10 秒內，而 AI 生成全部內容需要較長時間。建議您在「本地端 (localhost)」執行，或升級 Vercel 方案。");
+          }
+          if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+            throw new Error(`伺服器發生異常 (${res.status})，傳回了非 JSON 格式的內容。`);
+          }
+          try {
+            const errJson = JSON.parse(text);
+            throw new Error(errJson.error || "未知錯誤");
+          } catch {
+            throw new Error(text || "未知錯誤");
+          }
+        }
+
+        const json = await res.json();
+        clearInterval(visualTimer);
+        
+        if (json.error && !json.isPartial) throw new Error(json.error);
+
+        const newData = json.data;
+        
+        let lastSuccessStep = startFromStep - 1;
+        for (let i = startFromStep; i <= 10; i++) {
+           if (newData[i]) {
+              updateStepData(i, newData[i]);
+              lastSuccessStep = i;
+           }
+        }
+        
+        if (json.isPartial) {
+          setCurrentStep(lastSuccessStep + 1 > 10 ? 10 : lastSuccessStep + 1);
+          toast.error(`自動生成中斷！已為您自動存檔至第 ${lastSuccessStep} 步。您可以點擊左側「接續全自動生成」繼續。`);
+        } else {
+          setCurrentStep(1);
+          setEditedContent(currentDocText || newData[1] || "");
+          toast.success("全自動生成完成！您可以開始審閱與編輯。");
+        }
       } else {
+        clearInterval(visualTimer);
         setCurrentStep(1);
-        setEditedContent(stepsData[1] || newData[1] || "");
+        setEditedContent(currentDocText || "");
         toast.success("全自動生成完成！您可以開始審閱與編輯。");
       }
     } catch (err: any) {
