@@ -109,6 +109,23 @@ export const Workspace = () => {
         }),
       });
 
+      if (!res.ok) {
+        const text = await res.text();
+        if (res.status === 504 || text.includes("An error occurred")) {
+          throw new Error("伺服器回應逾時 (504 Gateway Timeout)！\n這通常是因為您部署在 Vercel 免費版，其 API 執行時間被嚴格限制在 10 秒內，而 AI 生成全部內容需要較長時間。建議您在「本地端 (localhost)」執行，或升級 Vercel 方案。");
+        }
+        if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+          throw new Error(`伺服器發生異常 (${res.status})，傳回了非 JSON 格式的內容。`);
+        }
+        // 若是有明確的 error json，嘗試解析它
+        try {
+          const errJson = JSON.parse(text);
+          throw new Error(errJson.error || "未知錯誤");
+        } catch {
+          throw new Error(text || "未知錯誤");
+        }
+      }
+
       const json = await res.json();
       clearInterval(visualTimer);
       
