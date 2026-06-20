@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -21,7 +21,22 @@ export async function fetchWithModelFallback(prompt: string, options: { useSearc
       } else {
         modelParams.generationConfig = { 
           maxOutputTokens: 8192,
-          responseMimeType: "application/json" 
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: SchemaType.OBJECT,
+            properties: {
+              "1": { type: SchemaType.STRING, description: "Step 1 text content" },
+              "2": { type: SchemaType.STRING, description: "Step 2 text content" },
+              "3": { type: SchemaType.STRING, description: "Step 3 text content" },
+              "4": { type: SchemaType.STRING, description: "Step 4 text content" },
+              "5": { type: SchemaType.STRING, description: "Step 5 text content" },
+              "6": { type: SchemaType.STRING, description: "Step 6 text content" },
+              "7": { type: SchemaType.STRING, description: "Step 7 text content" },
+              "8": { type: SchemaType.STRING, description: "Step 8 text content" },
+              "9": { type: SchemaType.STRING, description: "Step 9 text content" },
+              "10": { type: SchemaType.STRING, description: "Step 10 text content" }
+            }
+          }
         };
       }
 

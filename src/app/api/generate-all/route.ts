@@ -121,29 +121,36 @@ export async function POST(req: Request) {
     // Fail-safe: strip markdown JSON block tags if they accidentally exist
     text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
     
+    let parsedData: any = null;
+    let isPartial = false;
     try {
       // 由於開啟了 responseMimeType: "application/json"，回傳的 text 必然是純 JSON
-      const parsedData = JSON.parse(text);
-      
-      // 確保所有 Value 都是字串格式
-      for (const key in parsedData) {
-        if (typeof parsedData[key] === "object" && parsedData[key] !== null) {
-          parsedData[key] = JSON.stringify(parsedData[key], null, 2);
-        } else if (typeof parsedData[key] !== "string") {
-          parsedData[key] = String(parsedData[key]);
-        }
-      }
-
-      return NextResponse.json({ 
-        data: parsedData, 
-        modelUsed: modelUsed,
-        contextUsed: verifiedContext 
-      });
-
+      parsedData = JSON.parse(text);
     } catch (parseError) {
-      console.error("JSON 解析失敗，原始文本：", text);
-      throw parseError;
+      console.warn("JSON 解析失敗，原始文本可能被截斷，嘗試 salvage...");
+      parsedData = salvagePartialJSON(text);
+      if (!parsedData) {
+        console.error("Salvage 也失敗，拋出原始解析錯誤", parseError);
+        throw parseError;
+      }
+      isPartial = true;
     }
+      
+    // 確保所有 Value 都是字串格式
+    for (const key in parsedData) {
+      if (typeof parsedData[key] === "object" && parsedData[key] !== null) {
+        parsedData[key] = JSON.stringify(parsedData[key], null, 2);
+      } else if (typeof parsedData[key] !== "string") {
+        parsedData[key] = String(parsedData[key]);
+      }
+    }
+
+    return NextResponse.json({ 
+      data: parsedData, 
+      isPartial,
+      modelUsed: modelUsed,
+      contextUsed: verifiedContext 
+    });
 
   } catch (error: any) {
     console.error("API Error:", error);
