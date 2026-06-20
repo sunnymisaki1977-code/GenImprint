@@ -118,6 +118,8 @@ export async function POST(req: Request) {
     // ✅ 呼叫輪替函數，自動處理 429 降級與 JSON Mode
     const { result, modelUsed } = await fetchWithModelFallback(prompt, { useSearch: false });
     let text = result.response.text().trim();
+    // Fail-safe: strip markdown JSON block tags if they accidentally exist
+    text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
     
     try {
       // 由於開啟了 responseMimeType: "application/json"，回傳的 text 必然是純 JSON

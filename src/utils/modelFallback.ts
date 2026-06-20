@@ -19,7 +19,10 @@ export async function fetchWithModelFallback(prompt: string, options: { useSearc
       if (options.useSearch) {
         modelParams.tools = [{ googleSearch: {} }];
       } else {
-        modelParams.generationConfig = { maxOutputTokens: 8192 };
+        modelParams.generationConfig = { 
+          maxOutputTokens: 8192,
+          responseMimeType: "application/json" 
+        };
       }
 
       const model = genAI.getGenerativeModel(modelParams);
