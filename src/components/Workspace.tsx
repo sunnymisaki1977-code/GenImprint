@@ -99,48 +99,36 @@ export const Workspace = () => {
     
     try {
       let currentDocText = stepsData[1] || "";
+      let currentData = { ...stepsData };
+      let lastSuccessStep = startFromStep - 1;
+      
+      const CHUNK_SIZE = 3;
+      let currentStart = startFromStep;
 
-      // 動作 1: 若沒有自訂文獻且從第 1 步開始，先請求 /api/generate-context 進行查核
-      if (startFromStep === 1 && !currentDocText) {
-        const ctxRes = await fetch("/api/generate-context", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ theme }),
-        });
-
-        if (!ctxRes.ok) {
-           const text = await ctxRes.text();
-           try {
-             const errJson = JSON.parse(text);
-             throw new Error(errJson.error || "文獻查核失敗");
-           } catch {
-             throw new Error(text || "文獻查核失敗");
-           }
-        }
+      // 迴圈分段請求，每次處理 CHUNK_SIZE 個步驟
+      while (currentStart <= 10) {
+        const currentEnd = Math.min(currentStart + CHUNK_SIZE - 1, 10);
         
-        const ctxJson = await ctxRes.json();
-        currentDocText = ctxJson.data;
-        updateStepData(1, currentDocText);
-        startFromStep = 2; // Stage 1 結束，推進到 Stage 2
-      }
+        // 更新畫面進度
+        setAutoProgress(currentStart);
+        setCurrentStep(currentStart);
 
-      // 動作 2: 若還沒完成 (startFromStep <= 10)，請求 /api/generate-all (排版與生成)
-      if (startFromStep <= 10) {
         const res = await fetch("/api/generate-all", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             theme, 
             customDocText: currentDocText,
-            startFromStep,
-            existingData: { ...stepsData, 1: currentDocText }
+            startFromStep: currentStart,
+            endStep: currentEnd,
+            existingData: currentData
           }),
         });
 
         if (!res.ok) {
           const text = await res.text();
           if (res.status === 504 || text.includes("An error occurred")) {
-            throw new Error("伺服器回應逾時 (504 Gateway Timeout)！\n這通常是因為您部署在 Vercel 免費版，其 API 執行時間被嚴格限制在 10 秒內，而 AI 生成全部內容需要較長時間。建議您在「本地端 (localhost)」執行，或升級 Vercel 方案。");
+            throw new Error("伺服器回應逾時 (504 Gateway Timeout)！\n這通常是因為您部署在 Vercel 免費版，其 API 執行時間被嚴格限制在 10 秒內。建議您在「本地端 (localhost)」執行，或升級 Vercel 方案。");
           }
           if (text.includes("<!DOCTYPE") || text.includes("<html")) {
             throw new Error(`伺服器發生異常 (${res.status})，傳回了非 JSON 格式的內容。`);
@@ -154,39 +142,50 @@ export const Workspace = () => {
         }
 
         const json = await res.json();
-        clearInterval(visualTimer);
-        
         if (json.error && !json.isPartial) throw new Error(json.error);
 
         const newData = json.data;
         
-        let lastSuccessStep = startFromStep - 1;
-        for (let i = startFromStep; i <= 10; i++) {
-           if (newData[i]) {
-              updateStepData(i, newData[i]);
+        // 若後端有查核出新的文獻，更新到前端狀態中
+        if (json.contextUsed && !currentDocText) {
+          currentDocText = json.contextUsed;
+          currentData[1] = currentDocText;
+          updateStepData(1, currentDocText);
+        }
+        
+        for (let i = currentStart; i <= currentEnd; i++) {
+           if (newData[i] || newData[String(i)]) {
+              const val = newData[i] || newData[String(i)];
+              currentData[i] = val;
+              updateStepData(i, val);
               lastSuccessStep = i;
            }
         }
         
         if (json.isPartial) {
+          clearInterval(visualTimer);
           setCurrentStep(lastSuccessStep + 1 > 10 ? 10 : lastSuccessStep + 1);
           toast.error(`自動生成中斷！已為您自動存檔至第 ${lastSuccessStep} 步。您可以點擊左側「接續全自動生成」繼續。`);
-        } else {
-          setCurrentStep(1);
-          setEditedContent(currentDocText || newData[1] || "");
-          toast.success("全自動生成完成！您可以開始審閱與編輯。");
+          setIsAutoGenerating(false);
+          setAutoProgress(0);
+          return;
         }
-      } else {
-        clearInterval(visualTimer);
-        setCurrentStep(1);
-        setEditedContent(currentDocText || "");
-        toast.success("全自動生成完成！您可以開始審閱與編輯。");
+
+        // 推進下一個區塊
+        currentStart = currentEnd + 1;
       }
+      
+      // 全部完成
+      clearInterval(visualTimer);
+      setCurrentStep(1);
+      setEditedContent(currentDocText || currentData[1] || "");
+      toast.success("全自動生成完成！您可以開始審閱與編輯。");
     } catch (err: any) {
       clearInterval(visualTimer);
       console.error("Auto generate failed", err);
       toast.error(`全自動生成失敗: ${err.message}`);
     } finally {
+      clearInterval(visualTimer);
       setIsAutoGenerating(false);
       setAutoProgress(0);
     }
