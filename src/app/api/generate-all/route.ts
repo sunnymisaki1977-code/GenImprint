@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     // 支援前端指定開始與結束步驟，預設為一次跑完 1~10 步
-    const { theme, customDocText, startFromStep = 1, endStep = 10, existingData = {} } = body;
+    const { theme, customDocText, startFromStep = 1, endStep = 5, existingData = {} } = body;
 
     const apiKey = req.headers.get("x-gemini-api-key") || process.env.GEMINI_API_KEY;
     if (!apiKey) {
