@@ -12,15 +12,43 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     id: 1,
     title: "基礎背景事實查核",
-    description: "針對主題進行定義釐清與客觀史料彙整，破除字面迷思。",
+    description: "針對主題進行定義釐清與客觀史料彙整",
     type: "text",
     dependsOn: ["theme"],
     prompt: (ctx) => `你是一位嚴謹的台灣民俗與歷史學家。請針對主題「${ctx.theme}」進行一份約 800-1000 字的精確事實報告。
 
 【極度重要查核原則】：
-1. 破除字面陷阱：這類信仰名詞常有誤導（例如：數字不代表神明真實數量，特定姓氏不等於民間故事的同姓歷史名將）。請務必釐清「${ctx.theme}」真實的數量、職責與源流。
-2. 嚴守文獻：內容必須鎖定在「正史記載」或「台灣指標性大廟官方沿革」（如雲林馬鳴山鎮安宮等）。若無明確史料，請直言「源流具多種說法或不可考」，嚴禁 AI 自行以鄉野奇談或演義小說（如薛丁山、羅通等）填補空白。
-3. 敘事範圍：真實定義與數量、歷史起源與官方記載、核心精神、獨特的台灣民俗科儀（請確認是否真有王船祭或其他如吃飯擔、建醮等專屬儀式）、藝術表徵。
+## Tone & Style Constraints (語氣與字詞絕對禁忌)
+你在撰寫時，必須主動進行學術語氣轉換，展現歷史學家的權威感：
+- 🚫 **嚴禁使用農場文或神話語氣**：禁止寫出「相傳祂神通廣大」、「這尊神明非常靈驗」、「玉皇大帝派祂下凡」、「大家都知道祂是...」等缺乏根據的敘述。
+- ✅ **強制使用學術考證語氣**：必須使用「據清代《XX志》記載...」、「該神祇在台灣民間信仰中，展現極高的精神凝聚力」、「在道教/官方敕封體系中，其職責被定義為...」、「經田野調查與碑文考證，該信仰之傳承實為...」。
+
+## Output Structure (輸出架構要求)
+請嚴格依照以下五個標準段落進行輸出，不可遺漏任何一個面向：
+
+### 一、 釐清名義：真實定義與神格（約 150 字）
+- **核心任務**：第一句話必須直接破除「字面陷阱」或常見的民間誤解（姓氏不代表特定歷史人物）。
+- **指引**：依據神祇屬性精確剖析。若為釋教，點出法身無相與台灣民間性別流變；若為道教/民間信仰，精確點出其真實神格數量與地理/歷史淵源；若為儒教，釐清其星官或先賢之本源。
+
+### 二、 歷史朔源：官方正史與廟方沿革考（約 250 字）
+- **核心任務**：拒絕如《封神演義》、《西遊記》等神魔小說的杜撰，只能讓「正史、地方志、大廟官方碑文」說話。
+- **指引**：列出明確的文獻佐證（如《三國志》、《宋史》、《臺灣府志》）。引述台灣指標性大廟（如北港朝天宮、大龍峒保安宮、台南孔廟等）的清代官方沿革碑記，交代該神祇渡海來台與官方敕封的歷程。若無明確史料，請直言「源流具多種說法或不可考」。
+
+### 三、 核心精神：儒釋道之教義體現（約 150 字）
+- **核心任務**：將神祇的崇拜，昇華至核心哲學與宗教思想層次。
+- **指引**：說明該信仰體現了何種教義。例如儒家的「忠孝節義、崇德報功」；釋教的「慈悲憫人、因果業報」；或是道教/民間信仰的「護國庇民、天地陰陽調和、勸善懲惡、代天巡狩」。
+
+### 四、 民俗科儀：專屬且獨特的台灣儀式（約 250 字）
+- **核心任務**：【極度重要】絕對禁止描寫全台灣通用的「過爐、燒香、擲筊、安太歲」。必須寫出「只有該神祇有，其他神沒有」的專屬科儀。
+- **指引**：精準舉出該主題的台灣特有儀式（如大龍峒保安宮的「放榜/驅邪筅黗」、艋舺青山宮的「暗訪夜巡」、南鯤鯓代天府的「請王/燒王船」等）。必須查證真正屬於該神祇的獨特儀式，切勿張冠李戴。
+
+### 五、 藝術表徵：法相符號與象徵意涵（約 150 字）
+- **核心任務**：從台灣傳統工藝（木雕、泥塑、剪黏、彩繪）角度，解讀神像身上的視覺密碼。
+- **指引**：具體描述其外貌與法相（如文相和藹、武相怒目），並解析其「持物密碼」與姿態代表的文獻與職責意義（例如手持生死簿、單足踏鰲魚執筆等）。
+
+---
+**現在，請以「{{theme}}」為主題，開始撰寫這份嚴謹的歷史報告。**
+
 請以結構化、易讀的段落撰寫，確保每一個字皆為客觀事實。`,
   },
   {
@@ -88,16 +116,14 @@ ${ctx.step4}
 【格式絕對鎖定指令】：
 你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
 請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號（**）。
-AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。
-AI Prompt (English) 結尾必須包含：--ar 16:9
+AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。大而醒目的文字設計，結尾必須包含：--ar 16:9
 
 請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
 
 ### 第一組：[請填入縮圖名稱]
 主標：[請填入主標內容]
 副標：[請填入副標內容]
-中文：[請填入中文 Prompt]
-English：[請填入英文 Prompt]`,
+中文：[請填入中文 Prompt]`,
   },
   {
     id: 7,
@@ -112,15 +138,13 @@ English：[請填入英文 Prompt]`,
 【格式絕對鎖定指令】：
 你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
 請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號（**）。
-AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。
-AI Prompt (English) 結尾必須包含：--ar 9:16
+AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。大而醒目的文字設計，結尾必須包含：--ar 9:16
 
 請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
 
 ### 第一組：[請填入短影音縮圖名稱]
 高點擊文案：[請填入主標內容]
-中文：[請填入中文 Prompt]
-English：[請填入英文 Prompt]`,
+中文：[請填入中文 Prompt]`,
   },
   {
     id: 8,
@@ -135,14 +159,13 @@ English：[請填入英文 Prompt]`,
 【格式絕對鎖定指令】：
 你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
 請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號（**）。
-English 結尾必須包含：--ar 16:9
+AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。 結尾必須包含：--ar 16:9
 
 請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
 
 ### 第一組：[請填入意象圖名稱]
-詩詞：[由上到下，由右到左，請填入七言四句詩詞，]
-中文：[請填入中文畫面描述]
-English：[請填入英文 Prompt]`,
+詩詞（由上到下，由右到左，）：[請填入七言四句詩詞]
+中文：[請填入中文畫面描述]`,
   },
   {
     id: 9,

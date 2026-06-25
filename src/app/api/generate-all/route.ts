@@ -10,15 +10,19 @@ export async function POST(req: Request) {
     // 支援前端指定開始與結束步驟，預設為一次跑完 1~10 步
     const { theme, customDocText, startFromStep = 1, endStep = 5, existingData = {} } = body;
 
-    const apiKey = req.headers.get("x-gemini-api-key") || process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    const apiKeyRaw = req.headers.get("x-gemini-api-key") || process.env.GEMINI_API_KEY;
+    if (!apiKeyRaw) {
       return NextResponse.json({ error: "未設定 Gemini API 金鑰。" }, { status: 500 });
     }
+    
+    // 支援多把金鑰輪替 (以逗號分隔)
+    const apiKeys = apiKeyRaw.split(",").map(k => k.trim()).filter(k => k.length > 0);
+    let currentKeyIndex = Math.floor(Math.random() * apiKeys.length);
+    let ai = new GoogleGenAI({ apiKey: apiKeys[currentKeyIndex] });
+
     if (!theme) {
       return NextResponse.json({ error: "缺少主題 (theme)" }, { status: 400 });
     }
-
-    const ai = new GoogleGenAI({ apiKey: apiKey });
     let verifiedContext = customDocText || "";
 
     // ==========================================
@@ -27,7 +31,7 @@ export async function POST(req: Request) {
     if (!verifiedContext && startFromStep <= 1) {
       console.log("[Stage 1] 開始事實查核...");
       const researchPrompt = `你是一位嚴謹的台灣民俗與歷史學家。請使用 Google Search 徹底調查主題：「${theme}」。
-請注意，這類名詞常有字面誤導。請提供一份約 800 字的精確事實報告，涵蓋：真實定義與數量、歷史起源、核心精神與科儀、藝術表徵。請絕對基於客觀事實撰寫，嚴禁 AI 腦補。`;
+請注意，這類名詞常有字面誤導。請提供一份約 1500 字的精確事實報告，涵蓋：真實定義與數量、歷史起源、核心精神與科儀、藝術表徵。請絕對基於客觀事實撰寫，嚴禁 AI 腦補。`;
       
       try {
         const searchResponse = await ai.models.generateContent({
@@ -95,7 +99,7 @@ export async function POST(req: Request) {
     // ==========================================
     // 執行與重試機制 (Exponential Backoff)
     // ==========================================
-    const MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash-lite"];
+    const MODELS = ["gemini-2.5-flash", "gemini-2.5-pro",  "gemini-2.5-flash-lite"];
     let modelUsed = "";
     const MAX_RETRIES = 4;
 
@@ -144,7 +148,13 @@ export async function POST(req: Request) {
         const shouldRetry = isRateLimit || isServerBusy || isSyntaxError;
 
         if (shouldRetry && attempt < MAX_RETRIES) {
-          console.warn(`[API 警告] 模型 ${modelUsed} 失敗 (${isSyntaxError ? 'JSON 解析失敗' : errorMsg})。準備進行第 ${attempt + 1} 次重試...`);
+          if (isRateLimit && apiKeys.length > 1) {
+            currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+            ai = new GoogleGenAI({ apiKey: apiKeys[currentKeyIndex] });
+            console.warn(`[API 警告] 遇到 429 限制，已自動切換至下一把備用金鑰...`);
+          } else {
+            console.warn(`[API 警告] 模型 ${modelUsed} 失敗 (${isSyntaxError ? 'JSON 解析失敗' : errorMsg})。準備進行第 ${attempt + 1} 次重試...`);
+          }
           const delay = Math.pow(2, attempt) * 1500; // 3s, 6s, 12s...
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
