@@ -144,14 +144,15 @@ export async function POST(req: Request) {
         const isSyntaxError = err instanceof SyntaxError || err.name === 'SyntaxError';
         const isRateLimit = err.status === 429 || errorMsg.includes("429") || errorMsg.includes("quota");
         const isServerBusy = err.status === 503 || errorMsg.includes("503") || errorMsg.includes("overloaded");
+        const isAuthError = err.status === 403 || err.status === 400 || errorMsg.includes("PERMISSION_DENIED") || errorMsg.includes("API_KEY_INVALID");
         
-        const shouldRetry = isRateLimit || isServerBusy || isSyntaxError;
+        const shouldRetry = isRateLimit || isServerBusy || isSyntaxError || isAuthError;
 
         if (shouldRetry && attempt < MAX_RETRIES) {
-          if (isRateLimit && apiKeys.length > 1) {
+          if ((isRateLimit || isAuthError) && apiKeys.length > 1) {
             currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
             ai = new GoogleGenAI({ apiKey: apiKeys[currentKeyIndex] });
-            console.warn(`[API 警告] 遇到 429 限制，已自動切換至下一把備用金鑰...`);
+            console.warn(`[API 警告] 遇到 ${isAuthError ? '金鑰無效/403' : '429 限制'}，已自動切換至下一把備用金鑰...`);
           } else {
             console.warn(`[API 警告] 模型 ${modelUsed} 失敗 (${isSyntaxError ? 'JSON 解析失敗' : errorMsg})。準備進行第 ${attempt + 1} 次重試...`);
           }
