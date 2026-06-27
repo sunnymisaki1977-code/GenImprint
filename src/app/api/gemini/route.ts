@@ -24,20 +24,14 @@ export async function POST(req: Request) {
 
     masterPrompt += `
 【絕對要求】：
-1. 你必須直接回傳純 JSON 格式，絕對不要包含 markdown 區塊標記 (如 \`\`\`json)。
-2. 本次只需輸出 key："${step.id}"。
-3. 如果該步驟有指定要用 markdown (例如縮圖設計)，請把 markdown 字串塞在對應 key 的 value 中。
+1. 你必須直接回傳最終的內容，絕對不要使用 JSON 格式。
+2. 請根據該步驟的需求，直接輸出對應的 Markdown 排版內容即可，不需要任何前後問候語。
 
 ====================
 任務 ID: "${step.id}" (${step.title})
 要求說明：
 ${step.prompt(context || {})}
-====================
-
-請嚴格回傳一個完整的 JSON 物件：
-{
-  "${step.id}": "該步驟生成的內容字串"
-}`;
+====================`;
 
     return NextResponse.json({ prompt: masterPrompt });
   } catch (error: any) {

@@ -220,7 +220,7 @@ export default function App() {
   }, []);
 
   const [logs, setLogs] = useState([
-    { time: "23:22:36", text: "[System] OmniScript OS 初始化完畢。", type: "info" },
+    { time: "23:22:36", text: "[System] GenImprint Pro OS 初始化完畢。", type: "info" },
     { time: "23:22:40", text: "[System] 系統就緒。主美學配置：全職影音創作者 (Cinematic Pink)", type: "default" }
   ]);
   
@@ -509,7 +509,7 @@ const startNotionExport = async () => {
             </div>
             <div>
               <h1 className="text-md font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-                OmniScript
+                GenImprint Pro
               </h1>
             </div>
           </div>
