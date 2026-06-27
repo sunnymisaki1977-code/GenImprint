@@ -1322,7 +1322,7 @@ const startNotionExport = async () => {
         {/* 返回創作大廳 */}
         <div className="flex justify-center pb-2 pt-2 border-t border-slate-900 bg-slate-950/20">
           <button
-            onClick={() => setViewState('lobby')}
+            onClick={() => setViewState('hub')}
             className="py-1.5 px-4 text-[11px] font-bold text-slate-400 bg-slate-900/50 hover:bg-slate-800 hover:text-white border border-slate-800 rounded transition-colors"
           >
             返回創作大廳
@@ -1357,7 +1357,7 @@ const startNotionExport = async () => {
                 <UploadCloud className={`w-4 h-4 text-slate-400 ${isNotionExporting ? 'animate-bounce' : ''}`} />
               )}
               <span className={notionStatus === '✅ 已成功歸檔' ? 'text-emerald-400' : ''}>
-                {isNotionExporting ? '正在傳輸數據庫...' : notionStatus === '✅ 已成功歸檔' ? '讀取notion檔案' : '一鍵匯出 Notion'}
+                {isNotionExporting ? '正在傳輸數據庫...' : notionStatus === '✅ 已成功歸檔' ? '點擊選擇團隊專案' : '一鍵匯出 Notion'}
               </span>
             </button>
           </div>
