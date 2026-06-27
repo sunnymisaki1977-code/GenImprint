@@ -33,7 +33,29 @@ export async function POST(req: Request) {
 ${step.prompt(context || {})}
 ====================`;
 
-    return NextResponse.json({ prompt: masterPrompt });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: "API key is missing" }, { status: 500 });
+    }
+
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+    
+    const aiResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: masterPrompt }] }]
+        })
+    });
+
+    if (!aiResponse.ok) {
+        throw new Error(`Google API 錯誤: ${aiResponse.status}`);
+    }
+    
+    const data = await aiResponse.json();
+    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    return NextResponse.json({ result: resultText });
   } catch (error: any) {
     console.error("API Error in /api/gemini:", error);
     return NextResponse.json({ error: error.message || "伺服器錯誤" }, { status: 500 });

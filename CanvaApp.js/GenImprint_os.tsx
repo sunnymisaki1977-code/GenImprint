@@ -124,36 +124,28 @@ const AUDIENCE_THEMES = {
 };
 
 // ============================================================================
-// --- 結合 Vercel 邏輯與 Gemini Canva API 的全新生成函數 ---
+// --- 結合 Vercel 邏輯的全新生成函數 ---
 async function callVercelApi(stepId: any, context: any) {
-    // 步驟 1：向 Vercel 請求「該步驟專屬的 Prompt 字串」
     const VERCEL_API_URL = 'https://gen-imprint.vercel.app/api/gemini';
-    const promptResponse = await fetch(VERCEL_API_URL, {
+    
+    // 直接呼叫後端 API，後端會負責組裝 Prompt 並向 Gemini 請求資料
+    const response = await fetch(VERCEL_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stepId, context })
     });
-    if (!promptResponse.ok) {
-        throw new Error(`Vercel 邏輯引擎錯誤: ${promptResponse.status}`);
-    }
-    const { prompt } = await promptResponse.json();
-    // 步驟 2：拿到 Prompt 後，在前端直接打 Gemini Canva 官方 API
-    const apiKey = typeof window !== 'undefined' && (window as any).__GEMINI_API_KEY__ ? (window as any).__GEMINI_API_KEY__ : "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
     
-    const aiResponse = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-        })
-    });
-    if (!aiResponse.ok) {
-        throw new Error(`Google API 錯誤: ${aiResponse.status}`);
+    if (!response.ok) {
+        throw new Error(`Vercel 伺服器錯誤: ${response.status}`);
     }
     
-    const data = await aiResponse.json();
-    return data.candidates[0].content.parts[0].text;
+    const { result, error } = await response.json();
+    
+    if (error) {
+        throw new Error(`伺服器回傳錯誤: ${error}`);
+    }
+    
+    return result;
 }
 
 // ============================================================================
