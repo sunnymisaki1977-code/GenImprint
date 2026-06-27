@@ -124,10 +124,11 @@ const AUDIENCE_THEMES = {
 };
 
 // ============================================================================
+// --- 結合 Vercel 邏輯的全新生成函數 ---
 async function callVercelApi(stepId: any, context: any) {
     const VERCEL_API_URL = 'https://gen-imprint.vercel.app/api/gemini';
     
-
+    // 直接呼叫後端 API，後端會負責組裝 Prompt 並向 Gemini 請求資料
     const response = await fetch(VERCEL_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -148,7 +149,8 @@ async function callVercelApi(stepId: any, context: any) {
 }
 
 // ============================================================================
-
+// 2. 瘦身版 STEPS (已移除 Prompt，交由 Vercel 後端處理)
+// ============================================================================
 const STEPS = [
   { id: 1, name: '基礎背景事實查核', icon: Database, category: 'Research', desc: '針對主題進行定義釐清與客觀史料彙整', type: "text", dependsOn: ["theme"] },
   { id: 2, name: "長影音腳本撰寫", icon: FileText, category: 'Content', desc: "根據基礎背景，產出 5-10 分鐘的 YouTube 長影片文案。", type: "text", dependsOn: ["theme", "step1"] },
@@ -267,7 +269,8 @@ export default function App() {
   };
 
   // ============================================================================
-
+  // 4. 改寫全自動生成引擎 (打 Vercel API)
+  // ============================================================================
   const runAutoGeneration = async (startTheme) => {
       
     setIsGenerating(true);
@@ -291,7 +294,7 @@ export default function App() {
           step5: currentContextContents[5] || "",
         };
 
-        // 
+        // 直接向 Vercel 要資料
         const resultText = await callVercelApi(step, context);
 
         currentContextContents[step] = resultText;
@@ -335,7 +338,7 @@ export default function App() {
     addLog(`[Notion] 正在從雲端載入專案資料...`, 'info');
 
     try {
-      // 
+      // 向 Vercel 請求該 Notion 頁面的詳細內容
       const response = await fetch(`https://gen-imprint.vercel.app/api/notion/history?id=${pageId}`);
       const data = await response.json();
 
@@ -389,7 +392,8 @@ export default function App() {
   };
 
   // ============================================================================
- 
+  // 5. 改寫手動單步生成 (打 Vercel API)
+  // ============================================================================
   const triggerSingleStepAi = async () => {
     addLog(`[AI] 正在向 Vercel 雲端請求... 重新生成 Step ${activeStep}`, 'info');
         setIsGenerating(true);
@@ -427,7 +431,7 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
   addLog(`[System] 開始封裝企劃資料，自動準備匯出...`, 'info');
 
   try {
-    // 
+    // 呼叫我們自己的 Vercel 後端 Notion API
     const VERCEL_NOTION_URL = 'https://gen-imprint.vercel.app/api/notion';
     
     const targetTheme = customTheme || theme || "未命名企劃主題";

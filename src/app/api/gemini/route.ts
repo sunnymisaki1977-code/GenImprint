@@ -49,7 +49,8 @@ ${step.prompt(context || {})}
     });
 
     if (!aiResponse.ok) {
-        throw new Error(`Google API 錯誤: ${aiResponse.status}`);
+        const errorText = await aiResponse.text();
+        throw new Error(`Google API 錯誤 (${aiResponse.status}): ${errorText}`);
     }
     
     const data = await aiResponse.json();
