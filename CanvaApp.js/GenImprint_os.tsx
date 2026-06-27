@@ -131,7 +131,7 @@ async function callVercelApi(stepId: any, context: any) {
     const response = await fetch(VERCEL_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stepId, context })
+        body: JSON.stringify({ stepId, context, apiKey: typeof window !== 'undefined' ? (window as any).__GEMINI_API_KEY__ : '' })
     });
     
     if (!response.ok) {
