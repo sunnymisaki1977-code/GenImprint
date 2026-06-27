@@ -331,6 +331,12 @@ export default function App() {
     const pageId = e.target.value;
     if (!pageId) return;
 
+    if (pageId === "open_current") {
+      if (notionUrl) window.open(notionUrl, '_blank');
+      setSelectedArchive(""); // Reset selection
+      return;
+    }
+
     setSelectedArchive(pageId);
     setIsLoadingArchive(true);
     addLog(`[Notion] 正在從雲端載入專案資料...`, 'info');
@@ -1346,20 +1352,35 @@ const startNotionExport = async () => {
             </div>
 
             {/* Notion sync execution button */}
-            <button
-              onClick={notionStatus === '✅ 已成功歸檔' ? () => window.open(notionUrl, '_blank') : startNotionExport}
-              disabled={isNotionExporting}
-              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-inner active:scale-98 transition-all disabled:opacity-50"
-            >
-              {notionStatus === '✅ 已成功歸檔' ? (
-                <Link className="w-4 h-4 text-emerald-400" />
-              ) : (
+            {notionStatus === '✅ 已成功歸檔' ? (
+              <div className="w-full relative">
+                <select
+                  className="w-full py-2.5 pl-8 pr-8 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-emerald-400 text-xs font-bold appearance-none cursor-pointer outline-none text-center shadow-inner transition-all disabled:opacity-50"
+                  onChange={handleLoadArchive}
+                  value={selectedArchive}
+                  disabled={isLoadingArchive}
+                >
+                  <option value="">點擊選擇團隊專案</option>
+                  <option value="open_current">🔗 打開目前專案</option>
+                  {archiveList.map((item: any) => (
+                    <option key={item.id} value={item.id}>
+                      {item.title}
+                    </option>
+                  ))}
+                </select>
+                <Link className="w-4 h-4 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-4 h-4 text-emerald-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            ) : (
+              <button
+                onClick={startNotionExport}
+                disabled={isNotionExporting}
+                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-inner active:scale-98 transition-all disabled:opacity-50"
+              >
                 <UploadCloud className={`w-4 h-4 text-slate-400 ${isNotionExporting ? 'animate-bounce' : ''}`} />
-              )}
-              <span className={notionStatus === '✅ 已成功歸檔' ? 'text-emerald-400' : ''}>
-                {isNotionExporting ? '正在傳輸數據庫...' : notionStatus === '✅ 已成功歸檔' ? '點擊選擇團隊專案' : '一鍵匯出 Notion'}
-              </span>
-            </button>
+                <span>{isNotionExporting ? '正在傳輸數據庫...' : '一鍵匯出 Notion'}</span>
+              </button>
+            )}
           </div>
         </div>
 
