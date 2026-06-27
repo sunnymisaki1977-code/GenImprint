@@ -124,31 +124,41 @@ const AUDIENCE_THEMES = {
 };
 
 // ============================================================================
+// --- 結合 Vercel 邏輯與 Gemini Canva API 的全新生成函數 ---
 async function callVercelApi(stepId: any, context: any) {
+    // 步驟 1：向 Vercel 請求「該步驟專屬的 Prompt 字串」
     const VERCEL_API_URL = 'https://gen-imprint.vercel.app/api/gemini';
-    
-
-    const response = await fetch(VERCEL_API_URL, {
+    const promptResponse = await fetch(VERCEL_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stepId, context, apiKey: typeof window !== 'undefined' ? (window as any).__GEMINI_API_KEY__ : '' })
+        body: JSON.stringify({ stepId, context })
     });
+    if (!promptResponse.ok) {
+        throw new Error(`Vercel 邏輯引擎錯誤: ${promptResponse.status}`);
+    }
+    const { prompt } = await promptResponse.json();
+    // 步驟 2：拿到 Prompt 後，在前端直接打 Gemini Canva 官方 API
+    const apiKey = typeof window !== 'undefined' && (window as any).__GEMINI_API_KEY__ ? (window as any).__GEMINI_API_KEY__ : "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
     
-    if (!response.ok) {
-        throw new Error(`Vercel 伺服器錯誤: ${response.status}`);
+    const aiResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+        })
+    });
+    if (!aiResponse.ok) {
+        throw new Error(`Google API 錯誤: ${aiResponse.status}`);
     }
     
-    const { result, error } = await response.json();
-    
-    if (error) {
-        throw new Error(`伺服器回傳錯誤: ${error}`);
-    }
-    
-    return result;
+    const data = await aiResponse.json();
+    return data.candidates[0].content.parts[0].text;
 }
 
 // ============================================================================
-
+// 2. 瘦身版 STEPS (已移除 Prompt，交由 Vercel 後端處理)
+// ============================================================================
 const STEPS = [
   { id: 1, name: '基礎背景事實查核', icon: Database, category: 'Research', desc: '針對主題進行定義釐清與客觀史料彙整', type: "text", dependsOn: ["theme"] },
   { id: 2, name: "長影音腳本撰寫", icon: FileText, category: 'Content', desc: "根據基礎背景，產出 5-10 分鐘的 YouTube 長影片文案。", type: "text", dependsOn: ["theme", "step1"] },
@@ -267,7 +277,8 @@ export default function App() {
   };
 
   // ============================================================================
-
+  // 4. 改寫全自動生成引擎 (打 Vercel API)
+  // ============================================================================
   const runAutoGeneration = async (startTheme) => {
       
     setIsGenerating(true);
@@ -291,7 +302,7 @@ export default function App() {
           step5: currentContextContents[5] || "",
         };
 
-        // 
+        // 直接向 Vercel 要資料
         const resultText = await callVercelApi(step, context);
 
         currentContextContents[step] = resultText;
@@ -335,7 +346,7 @@ export default function App() {
     addLog(`[Notion] 正在從雲端載入專案資料...`, 'info');
 
     try {
-      // 
+      // 向 Vercel 請求該 Notion 頁面的詳細內容
       const response = await fetch(`https://gen-imprint.vercel.app/api/notion/history?id=${pageId}`);
       const data = await response.json();
 
@@ -389,7 +400,8 @@ export default function App() {
   };
 
   // ============================================================================
- 
+  // 5. 改寫手動單步生成 (打 Vercel API)
+  // ============================================================================
   const triggerSingleStepAi = async () => {
     addLog(`[AI] 正在向 Vercel 雲端請求... 重新生成 Step ${activeStep}`, 'info');
         setIsGenerating(true);
@@ -427,7 +439,7 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
   addLog(`[System] 開始封裝企劃資料，自動準備匯出...`, 'info');
 
   try {
-    // 
+    // 呼叫我們自己的 Vercel 後端 Notion API
     const VERCEL_NOTION_URL = 'https://gen-imprint.vercel.app/api/notion';
     
     const targetTheme = customTheme || theme || "未命名企劃主題";

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { stepId, context, apiKey: clientApiKey } = await req.json();
+    const { stepId, context } = await req.json();
 
     if (!stepId) {
       return NextResponse.json({ error: "Missing stepId" }, { status: 400 });
@@ -33,30 +33,7 @@ export async function POST(req: Request) {
 ${step.prompt(context || {})}
 ====================`;
 
-    const finalApiKey = clientApiKey || process.env.GEMINI_API_KEY;
-    if (!finalApiKey) {
-      return NextResponse.json({ error: "API key is missing (both client and server)" }, { status: 500 });
-    }
-
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${finalApiKey}`;
-    
-    const aiResponse = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: masterPrompt }] }]
-        })
-    });
-
-    if (!aiResponse.ok) {
-        const errorText = await aiResponse.text();
-        throw new Error(`Google API 錯誤 (${aiResponse.status}): ${errorText}`);
-    }
-    
-    const data = await aiResponse.json();
-    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    return NextResponse.json({ result: resultText });
+    return NextResponse.json({ prompt: masterPrompt });
   } catch (error: any) {
     console.error("API Error in /api/gemini:", error);
     return NextResponse.json({ error: error.message || "伺服器錯誤" }, { status: 500 });
