@@ -537,29 +537,79 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               return (
-                <button 
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    if (tab.id === 'creation' && viewState === 'workspace') {
-                      // Stay in workspace if already open
-                    } else {
-                      setViewState('hub');
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl font-medium text-xs transition-all text-left border relative ${
-                    isActive 
-                      ? `${curTheme.bgActive} ${curTheme.textActive} ${curTheme.borderActive}` 
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 border-transparent'
-                  }`}
-                >
-                  {/* Left indicator active line */}
-                  {isActive && (
-                    <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-md bg-gradient-to-b ${curTheme.gradient}`} />
+                <div key={tab.id} className="space-y-1.5">
+                  <button 
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      if (tab.id === 'creation' && viewState === 'workspace') {
+                        // Stay in workspace if already open
+                      } else {
+                        setViewState('hub');
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl font-medium text-xs transition-all text-left border relative ${
+                      isActive 
+                        ? `${curTheme.bgActive} ${curTheme.textActive} ${curTheme.borderActive}` 
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 border-transparent'
+                    }`}
+                  >
+                    {/* Left indicator active line */}
+                    {isActive && (
+                      <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-md bg-gradient-to-b ${curTheme.gradient}`} />
+                    )}
+                    <tab.icon className="w-4.5 h-4.5 shrink-0" />
+                    <span className="font-semibold">{tab.label}</span>
+                  </button>
+                  
+                  {/* AI 畫圖參量設定 (在左側選單視覺發控中心下) */}
+                  {isActive && tab.id === 'visual' && (
+                    <div className="mx-2 p-4 bg-[#0f172a]/70 border border-slate-800/80 rounded-xl space-y-4 backdrop-blur-md">
+                      <h4 className="text-[10px] font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                        <Sliders className="w-3.5 h-3.5 text-indigo-400" />
+                        AI 畫圖參量設定
+                      </h4>
+
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-[10px] text-slate-500 font-bold block mb-1">畫圖模型</label>
+                          <select className="w-full bg-[#070b16] border border-slate-950 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 focus:outline-none">
+                            <option>Midjourney v6.1 (Ultra High)</option>
+                            <option>DALL-E 3 (High fidelity)</option>
+                            <option>Stable Diffusion XL (Custom)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] text-slate-500 font-bold block mb-1">輸出比例</label>
+                          <select 
+                            value={visualStep}
+                            onChange={(e) => setVisualStep(Number(e.target.value))}
+                            className="w-full bg-[#070b16] border border-slate-950 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 focus:outline-none"
+                          >
+                            <option value={6}>16:9 - 橫幅縮圖 (YouTube / FB)</option>
+                            <option value={7}>9:16 - 短片直式封面 (Shorts / Reels)</option>
+                            <option value={8}>16:9 - 彩墨風格意象圖</option>
+                            <option value={10}>1:1 / 4:5 - 社群視覺素材 (IG Post)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] text-slate-500 font-bold block mb-1">畫風濾鏡</label>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {['霓虹電競', '寫實極簡', '3D 賽博', '手繪動漫'].map((style, idx) => (
+                              <button 
+                                key={style}
+                                className={`px-2 py-1.5 rounded-lg text-[9px] font-bold border text-center ${idx === 0 ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300' : 'border-slate-800 text-slate-500'}`}
+                              >
+                                {style}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
-                  <tab.icon className="w-4.5 h-4.5 shrink-0" />
-                  <span className="font-semibold">{tab.label}</span>
-                </button>
+                </div>
               );
             })}
           </nav>
@@ -916,53 +966,9 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
 
                 <div className="grid grid-cols-3 gap-6">
                   {/* Left Controls column */}
-                  <div className="col-span-1 bg-[#0f172a]/70 border border-slate-900/80 rounded-2xl p-5 space-y-4 backdrop-blur-md">
-                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-                      <Sliders className="w-3.5 h-3.5 text-indigo-400" />
-                      AI 畫圖參量設定
-                    </h4>
+                  <div className="col-span-1 bg-[#0f172a]/70 border border-slate-900/80 rounded-2xl p-5 space-y-4 backdrop-blur-md flex flex-col">
 
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-[10px] text-slate-500 font-bold block mb-1">畫圖模型</label>
-                        <select className="w-full bg-[#070b16] border border-slate-950 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
-                          <option>Midjourney v6.1 (Ultra High)</option>
-                          <option>DALL-E 3 (High fidelity)</option>
-                          <option>Stable Diffusion XL (Custom)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] text-slate-500 font-bold block mb-1">輸出比例</label>
-                        <select 
-                        value={visualStep}
-  onChange={(e) => setVisualStep(Number(e.target.value))}
-                        
-                        className="w-full bg-[#070b16] border border-slate-950 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none">
-                          <option value={6}>16:9 - 橫幅縮圖 (YouTube / FB)</option>
-  <option value={7}>9:16 - 短片直式封面 (Shorts / Reels)</option>
-  <option value={8}>16:9 - 彩墨風格意象圖</option>
-  <option value={10}>1:1 / 4:5 - 社群視覺素材 (IG Post)</option>
-                        </select>
-
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] text-slate-500 font-bold block mb-1">畫風濾鏡</label>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          {['霓虹電競', '寫實極簡', '3D 賽博', '手繪動漫'].map((style, idx) => (
-                            <button 
-                              key={style}
-                              className={`px-2 py-1.5 rounded-lg text-[10px] font-bold border text-center ${idx === 0 ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300' : 'border-slate-800 text-slate-500'}`}
-                            >
-                              {style}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-<div className="relative w-full h-full min-h-[500px]">
+<div className="relative w-full flex-1 min-h-[500px]">
   
   {/* AI 正在生成時，顯示 MP4 讀取動畫 */}
   {isGenerating ? (
