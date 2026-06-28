@@ -187,7 +187,7 @@ AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden par
 請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
 
 ### 第一組：[請填入意象圖名稱]
-詩詞（由上到下，由右到左）：[請填入七言四句詩詞]
+詩詞（由上到下由右到左不要標點符號）：[請填入七言四句詩詞]
 中文：[請填入中文畫面描述]`,
   },
   {
@@ -302,19 +302,19 @@ AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden par
 【格式絕對鎖定指令】：
 AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。 結尾必須包含：--4:3
 
-1.   ###圖卡標題：   [15字內，包含主題名稱]
+1.   圖卡 1：   [15字內，包含主題名稱]
      ###一句話說明：   [20字內，點出核心精神]
      視覺描述：  [請填入視覺描述中文 Prompt]
 
-2.   ###圖卡標題：   [15字內，包含主題名稱]
+2.   圖卡 2：   [15字內，包含主題名稱]
      ###一句話說明：   [20字內，點出核心精神]
      視覺描述：  [請填入視覺描述中文 Prompt]
 
-3.   ###圖卡標題：   [15字內，包含主題名稱]
+3.   圖卡 3：   [15字內，包含主題名稱]
      ###一句話說明：   [20字內，點出核心精神]
      視覺描述：  [請填入視覺描述中文 Prompt]
 
-4.   ###圖卡標題：   [15字內，包含主題名稱]
+4.   圖卡 4：   [15字內，包含主題名稱]
      ###一句話說明：   [20字內，點出核心精神]
      視覺描述：  [請填入視覺描述中文 Prompt]
 

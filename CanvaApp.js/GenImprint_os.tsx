@@ -251,54 +251,89 @@ export default function App() {
     const text = stepContents[visualStep];
     if (!text) return [];
     
-    // Pattern to match "### 第一組" or "1. 畫格 1"
-    const regex = /(?:###\s*(第[一二三四五六七八九十\d]+組)|(?:^|\n)\s*\d+\.\s*(畫格\s*\d+))[^\n]*\n([\s\S]*?)(?=(?:###\s*第[一二三四五六七八九十\d]+組)|(?:^|\n)\s*\d+\.\s*畫格\s*\d+|$)/g;
+    const lines = text.split('\n');
     const groups = [];
-    let match;
-    let index = 0;
-    while ((match = regex.exec(text)) !== null) {
-      const groupName = match[1] || match[2];
-      const content = match[3];
-      const promptMatch = content.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt)\s*[：:]\s*(.*?)(?=\n|$)/);
-      const promptText = promptMatch ? promptMatch[1].trim() : "無法自動擷取提示詞，請手動確認";
-      
-      const mainTitleMatch = content.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
-      const subTitleMatch = content.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
-      const poetryMatch = content.match(/詩詞(?:（.*?）)?\s*[：:]\s*([\s\S]*?)(?=\n(?:中文|視覺|主標|副標|高點擊文案|主標題|副標題)\s*[：:]|$)/);
-      
-      groups.push({
-        id: `group-${visualStep}-${index}`,
-        title: groupName,
-        prompt: promptText,
-        mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
-        subTitle: subTitleMatch ? subTitleMatch[1].trim() : "",
-        poetry: poetryMatch ? poetryMatch[1].trim() : ""
-      });
-      index++;
+    let currentGroup = null;
+    let cardCount = 1;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        let titleMatch = null;
+        if (line.match(/###\s*(第[一二三四五六七八九十\d]+組)/)) {
+            titleMatch = line.match(/###\s*(第[一二三四五六七八九十\d]+組)/)[1];
+        } else if (line.match(/\d+\.\s*(畫格\s*\d+)/)) {
+            titleMatch = line.match(/\d+\.\s*(畫格\s*\d+)/)[1];
+        } else if (line.match(/16:9\s*動態分割構圖/)) {
+            titleMatch = "16:9 動態分割構圖";
+        } else if (line.match(/9:16\s*動態分割構圖/)) {
+            titleMatch = "9:16 動態分割構圖";
+        } else if (line.match(/\d+\.\s*###\s*圖卡標籤/)) {
+            titleMatch = `圖卡 ${cardCount}`;
+            cardCount++;
+        }
+        
+        if (titleMatch) {
+            if (currentGroup) {
+                groups.push(currentGroup);
+            }
+            currentGroup = { title: titleMatch, content: "" };
+        } else {
+            if (currentGroup) {
+                currentGroup.content += line + "\n";
+            }
+        }
+    }
+    if (currentGroup) {
+        groups.push(currentGroup);
+    }
+    
+    const parsedGroups = groups.map((g, index) => {
+        const content = g.content;
+        const promptMatch = content.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt|AI Prompt\s*\(中文\)|AI Prompt\s*（中文）)\s*[：:]\s*(.*?)(?=\n|$)/);
+        const promptText = promptMatch ? promptMatch[1].trim() : "無法自動擷取提示詞，請手動確認";
+        
+        const mainTitleMatch = content.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+        const subTitleMatch = content.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+        const poetryMatch = content.match(/詩詞(?:（.*?）)?\s*[：:]\s*([\s\S]*?)(?=\n(?:中文|視覺|主標|副標|高點擊文案|主標題|副標題|AI Prompt)\s*[：:]|$)/);
+        
+        return {
+            id: `group-${visualStep}-${index}`,
+            title: g.title,
+            prompt: promptText,
+            mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
+            subTitle: subTitleMatch ? subTitleMatch[1].trim() : "",
+            poetry: poetryMatch ? poetryMatch[1].trim() : ""
+        };
+    });
+    
+    if (parsedGroups.length > 0) {
+        return parsedGroups;
     }
     
     // Fallback if no groups matched but there is text
-    if (groups.length === 0 && text.trim().length > 10) {
+    const fullText = text.trim();
+    if (fullText.length > 10) {
        let fallbackTitle = "主要視覺";
-       if (text.includes("16:9 動態分割構圖提示詞")) fallbackTitle = "16:9 動態分割構圖";
-       else if (text.includes("9:16 動態分割構圖提示詞")) fallbackTitle = "9:16 動態分割構圖";
+       if (fullText.includes("16:9 動態分割構圖提示詞")) fallbackTitle = "16:9 動態分割構圖";
+       else if (fullText.includes("9:16 動態分割構圖提示詞")) fallbackTitle = "9:16 動態分割構圖";
        
-       const promptMatch = text.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt|AI Prompt\s*\(中文\)|AI Prompt\s*（中文）)\s*[：:]\s*(.*?)(?=\n|$)/);
-       const mainTitleMatch = text.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
-       const subTitleMatch = text.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
-       const poetryMatch = text.match(/詩詞(?:（.*?）)?\s*[：:]\s*([\s\S]*?)(?=\n(?:中文|視覺|主標|副標|高點擊文案|主標題|副標題|AI Prompt)\s*[：:]|$)/);
+       const promptMatch = fullText.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt|AI Prompt\s*\(中文\)|AI Prompt\s*（中文）)\s*[：:]\s*(.*?)(?=\n|$)/);
+       const mainTitleMatch = fullText.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+       const subTitleMatch = fullText.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+       const poetryMatch = fullText.match(/詩詞(?:（.*?）)?\s*[：:]\s*([\s\S]*?)(?=\n(?:中文|視覺|主標|副標|高點擊文案|主標題|副標題|AI Prompt)\s*[：:]|$)/);
        
-       groups.push({
+       return [{
          id: `group-${visualStep}-fallback`,
          title: fallbackTitle,
-         prompt: promptMatch ? promptMatch[1].trim() : text.substring(0, 150),
+         prompt: promptMatch ? promptMatch[1].trim() : fullText.substring(0, 150),
          mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
          subTitle: subTitleMatch ? subTitleMatch[1].trim() : "",
          poetry: poetryMatch ? poetryMatch[1].trim() : ""
-       });
+       }];
     }
     
-    return groups;
+    return [];
   }, [stepContents, visualStep]);
 
   const applyTextOverlayToImageBase64 = (base64Image, mainTitle, subTitle, poetry) => {
