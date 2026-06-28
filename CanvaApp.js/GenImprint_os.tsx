@@ -245,6 +245,7 @@ export default function App() {
 
   const [groupImages, setGroupImages] = useState({});
   const [generatingGroups, setGeneratingGroups] = useState({});
+  const [imageEngine, setImageEngine] = useState('imagen4'); // 'imagen4' | 'flash'
 
   const visualGroups = useMemo(() => {
     const text = stepContents[visualStep];
@@ -413,42 +414,85 @@ export default function App() {
     const { id: groupId, prompt, mainTitle, subTitle, poetry } = group;
     if (!prompt) return;
     setGeneratingGroups(prev => ({ ...prev, [groupId]: true }));
-    addLog(`[Imagen 4.0] 啟動 ${groupId} 繪製進程...`, 'info');
+    
+    const engineName = imageEngine === 'flash' ? 'Gemini 2.5 Flash' : 'Imagen 4.0';
+    addLog(`[${engineName}] 啟動 ${groupId} 繪製進程...`, 'info');
     
     try {
       const apiKey = ""; // Canvas 預覽環境會自動帶入
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
       
       let aspectRatio = "1:1";
       if (visualStep === 6 || visualStep === 8) aspectRatio = "16:9";
       if (visualStep === 7) aspectRatio = "9:16";
       if (visualStep === 10) aspectRatio = "4:3";
       
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instances: [{ prompt: prompt }],
-          parameters: { sampleCount: 1, aspectRatio: aspectRatio }
-        })
-      });
+      let base64 = "";
+
+      if (imageEngine === 'flash') {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+        
+        // Flash Image 尚未直接支援 aspectRatio 參數，因此附加在 Prompt 結尾引導模型
+        const finalPrompt = `${prompt}\n(Please generate image with aspect ratio ${aspectRatio})`;
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: finalPrompt }]
+              }
+            ],
+            generationConfig: {
+              responseModalities: ['TEXT', 'IMAGE']
+            }
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(`API Error: ${data.error?.message || response.status}`);
+        
+        const parts = data.candidates?.[0]?.content?.parts || [];
+        const imagePart = parts.find(p => p.inlineData);
+        if (imagePart) {
+          base64 = imagePart.inlineData.data;
+        } else {
+          throw new Error("模型未回傳圖像資料");
+        }
+      } else {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            instances: [{ prompt: prompt }],
+            parameters: { sampleCount: 1, aspectRatio: aspectRatio }
+          })
+        });
+        
+        const data = await response.json();
+        if (!response.ok) throw new Error(`API Error: ${data.error?.message || response.status}`);
+        if (data.predictions && data.predictions[0]) {
+          base64 = data.predictions[0].bytesBase64Encoded;
+        } else {
+          throw new Error("未收到圖片資料");
+        }
+      }
       
-      const data = await response.json();
-      if (data.predictions && data.predictions[0]) {
-        const base64 = data.predictions[0].bytesBase64Encoded;
+      if (base64) {
         const originalImage = `data:image/png;base64,${base64}`;
         
         // 套用完美中文字型疊加 (若有主/副標或詩詞)
         const finalImage = await applyTextOverlayToImageBase64(originalImage, mainTitle, subTitle, poetry);
         
         setGroupImages(prev => ({ ...prev, [groupId]: finalImage }));
-        addLog(`[Imagen 4.0] ✨ ${groupId} 渲染及字型疊加完成！`, 'success');
+        addLog(`[${engineName}] ✨ ${groupId} 渲染及字型疊加完成！`, 'success');
         setCredits(prev => Math.max(0, prev - 5));
-      } else {
-        throw new Error(data.error?.message || "未收到圖片資料");
       }
     } catch (err) {
-      addLog(`[Imagen 4.0] 繪製失敗: ${err.message}`, 'error');
+      const engineName = imageEngine === 'flash' ? 'Gemini 2.5 Flash' : 'Imagen 4.0';
+      addLog(`[${engineName}] 繪製失敗: ${err.message}`, 'error');
     } finally {
       setGeneratingGroups(prev => ({ ...prev, [groupId]: false }));
     }
@@ -801,12 +845,24 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                           <select 
                             value={visualStep}
                             onChange={(e) => setVisualStep(Number(e.target.value))}
-                            className="w-full bg-[#070b16] border border-slate-950 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 focus:outline-none"
+                            className="w-full bg-[#070b16] border border-slate-950 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 focus:outline-none mb-3"
                           >
                             <option value={6}>16:9 - 橫幅縮圖 (YouTube / FB)</option>
                             <option value={7}>9:16 - 短片直式封面 (Shorts / Reels)</option>
                             <option value={8}>16:9 - 彩墨風格意象圖</option>
                             <option value={10}>1:1 / 4:3 - 社群視覺素材 (IG Post)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] text-slate-500 font-bold block mb-1">影像生成引擎</label>
+                          <select 
+                            value={imageEngine}
+                            onChange={(e) => setImageEngine(e.target.value)}
+                            className="w-full bg-[#070b16] border border-slate-950 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 focus:outline-none"
+                          >
+                            <option value="imagen4">Imagen 4.0 (高畫質)</option>
+                            <option value="flash">Gemini 2.5 Flash (極速/雙向編輯)</option>
                           </select>
                         </div>
 
