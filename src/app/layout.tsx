@@ -19,6 +19,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-TW" className={`${calligraphy.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@400;700&family=Zhi+Mang+Xing&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet" />
+      </head>
       <body className={noto.className}>
         <WorkflowProvider>
           <AppLayout>{children}</AppLayout>

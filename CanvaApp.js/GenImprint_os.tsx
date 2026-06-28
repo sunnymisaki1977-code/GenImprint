@@ -331,8 +331,15 @@ export default function App() {
         ];
         const style = palettes[Math.floor(Math.random() * palettes.length)];
         
-        // 藝術書法字優先
-        const fontStr = (size) => `bold ${size}px "DFKai-SB", "BiauKai", "Kaiti TC", "STKaiti", "Noto Serif TC", "Noto Sans TC", serif`;
+        // 藝術書法字優先 (加入 Google Fonts 行書/毛筆/小薇體/宋體 隨機抽樣)
+        const fontFamilies = [
+          '"Ma Shan Zheng", "DFKai-SB", "BiauKai", "Kaiti TC", "STKaiti", serif', // 馬善政毛筆楷書
+          '"Zhi Mang Xing", "DFKai-SB", "BiauKai", "Kaiti TC", "STKaiti", serif', // 志莽行書
+          '"ZCOOL XiaoWei", "DFKai-SB", "BiauKai", "Kaiti TC", "STKaiti", serif', // 站酷小薇體
+          '"Noto Serif TC", "DFKai-SB", "BiauKai", "Kaiti TC", "STKaiti", serif'  // 思源宋體
+        ];
+        const randomFontFamily = fontFamilies[Math.floor(Math.random() * fontFamilies.length)];
+        const fontStr = (size) => `bold ${size}px ${randomFontFamily}`;
         
         if (visualStep === 7 && mainTitle) {
           // Step 7 主標直式 (基準線右方 25%)

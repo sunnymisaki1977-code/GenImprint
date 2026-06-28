@@ -182,8 +182,7 @@ AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden par
 【格式絕對鎖定指令】：
 你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
 請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號（  ）。
-使用引號：在 Prompt 中，使用單引號或雙引號將中文包起來（例如："新年快樂"），讓模型明確知道這是要印出來的字。
-AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。 結尾必須包含：--ar 16:9
+AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。 結尾必須包含：-- 16:9
 
 請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
 
@@ -258,7 +257,9 @@ ${ctx.step1}
 
 ### 🎨 視覺 Prompt
   16:9 動態分割構圖提示詞：  
-以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】生成 16:9 彩墨風格，五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成【蒙太奇資訊圖表（Montage Infographic）】
+以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】生成 16:9 彩墨風格，五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張16:9【蒙太奇資訊圖表（Montage Infographic）】
+【格式絕對鎖定指令】：
+AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。 結尾必須包含：--ar 16:9
 
 
   主標題：  [請填入主標題]
@@ -280,7 +281,7 @@ ${ctx.step1}
    視覺描述：  [請填入視覺描述中文 Prompt]
 
   9:16 動態分割構圖提示詞：  
-以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】生成 9:16 (直式) 彩墨風格，五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成【蒙太奇資訊圖表（Montage Infographic）】
+以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】生成 9:16 (直式) 彩墨風格，五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張9:16【蒙太奇資訊圖表（Montage Infographic）】
 
   主標題：  [請填入主標題]
 
@@ -302,6 +303,9 @@ ${ctx.step1}
 
 
 ### 🖼️ 4:3 4 張圖卡排版字卡提示詞：
+【格式絕對鎖定指令】：
+AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。 結尾必須包含：--4:3
+
 1.   ###圖卡標題：   [15字內，包含主題名稱]
      ###一句話說明：   [20字內，點出核心精神]
      視覺描述：  [請填入視覺描述中文 Prompt]
