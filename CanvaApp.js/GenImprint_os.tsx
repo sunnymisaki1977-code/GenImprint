@@ -261,10 +261,15 @@ export default function App() {
       const promptMatch = content.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt)\s*[：:]\s*(.*?)(?=\n|$)/);
       const promptText = promptMatch ? promptMatch[1].trim() : "無法自動擷取提示詞，請手動確認";
       
+      const mainTitleMatch = content.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+      const subTitleMatch = content.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+      
       groups.push({
         id: `group-${visualStep}-${index}`,
         title: groupName,
-        prompt: promptText
+        prompt: promptText,
+        mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
+        subTitle: subTitleMatch ? subTitleMatch[1].trim() : ""
       });
       index++;
     }
@@ -272,17 +277,76 @@ export default function App() {
     // Fallback if no groups matched but there is text
     if (groups.length === 0 && text.trim().length > 10) {
        const promptMatch = text.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt)\s*[：:]\s*(.*?)(?=\n|$)/);
+       const mainTitleMatch = text.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+       const subTitleMatch = text.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
        groups.push({
          id: `group-${visualStep}-fallback`,
          title: "主要視覺",
-         prompt: promptMatch ? promptMatch[1].trim() : text.substring(0, 150)
+         prompt: promptMatch ? promptMatch[1].trim() : text.substring(0, 150),
+         mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
+         subTitle: subTitleMatch ? subTitleMatch[1].trim() : ""
        });
     }
     
     return groups;
   }, [stepContents, visualStep]);
 
-  const generateGroupImage = async (groupId, prompt) => {
+  const applyTextOverlayToImageBase64 = (base64Image, mainTitle, subTitle) => {
+    return new Promise((resolve) => {
+      if (!mainTitle && !subTitle) {
+        resolve(base64Image);
+        return;
+      }
+      
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const width = img.width;
+        const height = img.height;
+        canvas.width = width;
+        canvas.height = height;
+        
+        ctx.drawImage(img, 0, 0);
+        
+        const mainFontSize = Math.floor(width * 0.065);
+        const subFontSize = Math.floor(width * 0.028);
+        
+        const mainX = width / 2;
+        const mainY = height * 0.15;
+        
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        if (mainTitle) {
+          ctx.font = `bold ${mainFontSize}px "Noto Sans TC", sans-serif`;
+          const shadowOffset = Math.max(1, Math.floor(width * 0.003));
+          ctx.fillStyle = 'rgba(20, 10, 0, 0.7)';
+          ctx.fillText(mainTitle, mainX + shadowOffset, mainY + shadowOffset);
+          ctx.fillStyle = 'rgba(255, 251, 240, 1)';
+          ctx.fillText(mainTitle, mainX, mainY);
+        }
+        
+        if (subTitle) {
+          const subX = width / 2;
+          const subY = mainY + (mainFontSize * 0.8);
+          ctx.font = `bold ${subFontSize}px "Noto Sans TC", sans-serif`;
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.58)';
+          ctx.fillText(subTitle, subX + 1, subY + 1);
+          ctx.fillStyle = 'rgba(240, 200, 80, 1)';
+          ctx.fillText(subTitle, subX, subY);
+        }
+        
+        resolve(canvas.toDataURL('image/png', 0.95));
+      };
+      img.onerror = () => resolve(base64Image);
+      img.src = base64Image;
+    });
+  };
+
+  const generateGroupImage = async (group) => {
+    const { id: groupId, prompt, mainTitle, subTitle } = group;
     if (!prompt) return;
     setGeneratingGroups(prev => ({ ...prev, [groupId]: true }));
     addLog(`[Imagen 4.0] 啟動 ${groupId} 繪製進程...`, 'info');
@@ -308,8 +372,13 @@ export default function App() {
       const data = await response.json();
       if (data.predictions && data.predictions[0]) {
         const base64 = data.predictions[0].bytesBase64Encoded;
-        setGroupImages(prev => ({ ...prev, [groupId]: `data:image/png;base64,${base64}` }));
-        addLog(`[Imagen 4.0] ✨ ${groupId} 渲染完成！`, 'success');
+        const originalImage = `data:image/png;base64,${base64}`;
+        
+        // 套用完美中文字型疊加 (若有主/副標)
+        const finalImage = await applyTextOverlayToImageBase64(originalImage, mainTitle, subTitle);
+        
+        setGroupImages(prev => ({ ...prev, [groupId]: finalImage }));
+        addLog(`[Imagen 4.0] ✨ ${groupId} 渲染及字型疊加完成！`, 'success');
         setCredits(prev => Math.max(0, prev - 5));
       } else {
         throw new Error(data.error?.message || "未收到圖片資料");
@@ -578,7 +647,7 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
     setIsGeneratingImage(true);
     addLog(`[Visual Hub] 開始批次發送 ${visualGroups.length} 組 Prompt 至 Imagen 4.0 API 端點...`, 'info');
     
-    await Promise.all(visualGroups.map(group => generateGroupImage(group.id, group.prompt)));
+    await Promise.all(visualGroups.map(group => generateGroupImage(group)));
     
     setIsGeneratingImage(false);
     addLog(`[Visual Hub] 🎨 所有 Imagen 4.0 影像生成完畢！`, 'success');
@@ -1143,7 +1212,7 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                             </div>
                             
                             <button
-                              onClick={() => generateGroupImage(group.id, group.prompt)}
+                              onClick={() => generateGroupImage(group)}
                               disabled={generatingGroups[group.id]}
                               className="w-full mt-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition-all disabled:opacity-50"
                             >

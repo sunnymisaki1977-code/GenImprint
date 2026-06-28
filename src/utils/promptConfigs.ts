@@ -139,8 +139,7 @@ ${ctx.step4}
 【格式絕對鎖定指令】：
 你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
 請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號（  ）。
-使用引號：在 Prompt 中，使用單引號或雙引號將中文包起來（例如： "新年快樂"），讓模型明確知道這是要印出來的字。
-AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。大而醒目的藝術文字設計"請填入主標內容""請填入副標內容"，結尾必須包含：--ar 16:9
+AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。結尾必須包含：--16:9
 
 請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
 
@@ -162,8 +161,7 @@ AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden par
 【格式絕對鎖定指令】：
 你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
 請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號（  ）。
-使用引號：在 Prompt 中，使用單引號或雙引號將中文包起來（例如："新年快樂"），讓模型明確知道這是要印出來的字。
-AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。大而醒目的藝術文字設計，結尾必須包含：--ar 9:16
+AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。結尾必須包含：--9:16
 
 請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
 
