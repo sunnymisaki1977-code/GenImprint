@@ -1299,7 +1299,7 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                             ) : generatingGroups[group.id] ? (
                                <div className="flex flex-col items-center gap-2">
                                  <RefreshCw className="w-5 h-5 animate-spin text-purple-500" />
-                                 <span className="text-[10px] text-purple-400">正在透過 Imagen 4 生成...</span>
+                                 <span className="text-[10px] text-purple-400">正在透過 {imageEngine === 'flash' ? 'Gemini 2.5 Flash' : 'Imagen 4.0'} 生成...</span>
                                </div>
                             ) : (
                                <div className="text-slate-700 font-medium text-xs flex items-center gap-2">
@@ -1313,7 +1313,7 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                             <div>
                               <div className="flex items-center justify-between mb-1.5">
                                 <span className="px-1.5 py-0.5 rounded text-[9px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-semibold">
-                                  Imagen 4.0
+                                  {imageEngine === 'flash' ? 'Gemini 2.5 Flash' : 'Imagen 4.0'}
                                 </span>
                                 <div className="flex gap-1.5">
                                   <button 
