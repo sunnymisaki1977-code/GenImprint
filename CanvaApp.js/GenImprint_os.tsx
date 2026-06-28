@@ -263,13 +263,15 @@ export default function App() {
       
       const mainTitleMatch = content.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
       const subTitleMatch = content.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+      const poetryMatch = content.match(/詩詞(?:（由上到下，由右到左）)?\s*[：:]\s*(.*?)(?=\n|$)/);
       
       groups.push({
         id: `group-${visualStep}-${index}`,
         title: groupName,
         prompt: promptText,
         mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
-        subTitle: subTitleMatch ? subTitleMatch[1].trim() : ""
+        subTitle: subTitleMatch ? subTitleMatch[1].trim() : "",
+        poetry: poetryMatch ? poetryMatch[1].trim() : ""
       });
       index++;
     }
@@ -279,21 +281,23 @@ export default function App() {
        const promptMatch = text.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt)\s*[：:]\s*(.*?)(?=\n|$)/);
        const mainTitleMatch = text.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
        const subTitleMatch = text.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+       const poetryMatch = text.match(/詩詞(?:（由上到下，由右到左）)?\s*[：:]\s*(.*?)(?=\n|$)/);
        groups.push({
          id: `group-${visualStep}-fallback`,
          title: "主要視覺",
          prompt: promptMatch ? promptMatch[1].trim() : text.substring(0, 150),
          mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
-         subTitle: subTitleMatch ? subTitleMatch[1].trim() : ""
+         subTitle: subTitleMatch ? subTitleMatch[1].trim() : "",
+         poetry: poetryMatch ? poetryMatch[1].trim() : ""
        });
     }
     
     return groups;
   }, [stepContents, visualStep]);
 
-  const applyTextOverlayToImageBase64 = (base64Image, mainTitle, subTitle) => {
+  const applyTextOverlayToImageBase64 = (base64Image, mainTitle, subTitle, poetry) => {
     return new Promise((resolve) => {
-      if (!mainTitle && !subTitle) {
+      if (!mainTitle && !subTitle && !poetry) {
         resolve(base64Image);
         return;
       }
@@ -312,46 +316,83 @@ export default function App() {
         
         const mainFontSize = Math.floor(width * 0.065);
         const subFontSize = Math.floor(width * 0.028);
-        
-        const mainX = width / 2;
-        const mainY = height * 0.25;
+        const poetryFontSize = Math.floor(width * 0.04);
         
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
         // --- 隨機多樣化風格定義 (由 AI 隨機取樣) ---
         const palettes = [
-          // 1. 象牙白主標 + 耀眼金副標 + 深咖陰影 (原本的預設)
           { main: 'rgba(255, 251, 240, 1)', mainShadow: 'rgba(20, 10, 0, 0.7)', sub: 'rgba(240, 200, 80, 1)', subShadow: 'rgba(0, 0, 0, 0.58)' },
-          // 2. 華麗淡金主標 + 純白副標 + 純黑陰影
           { main: 'rgba(255, 223, 130, 1)', mainShadow: 'rgba(0, 0, 0, 0.8)', sub: 'rgba(255, 255, 255, 1)', subShadow: 'rgba(0, 0, 0, 0.7)' },
-          // 3. 冰雪銀白主標 + 青藍色副標 + 深藍陰影
           { main: 'rgba(240, 245, 255, 1)', mainShadow: 'rgba(5, 15, 40, 0.8)', sub: 'rgba(150, 220, 255, 1)', subShadow: 'rgba(0, 5, 20, 0.7)' },
-          // 4. 琥珀金主標 + 暖橘色副標 + 墨綠/深褐陰影
           { main: 'rgba(255, 200, 100, 1)', mainShadow: 'rgba(20, 10, 5, 0.8)', sub: 'rgba(255, 150, 80, 1)', subShadow: 'rgba(20, 5, 0, 0.7)' },
-          // 5. 櫻花粉白主標 + 紫金副標 + 深紫陰影
           { main: 'rgba(255, 240, 245, 1)', mainShadow: 'rgba(30, 10, 40, 0.8)', sub: 'rgba(230, 180, 255, 1)', subShadow: 'rgba(20, 0, 30, 0.7)' }
         ];
-        
         const style = palettes[Math.floor(Math.random() * palettes.length)];
         
-        if (mainTitle) {
-          ctx.font = `bold ${mainFontSize}px "Noto Sans TC", sans-serif`;
-          const shadowOffset = Math.max(1, Math.floor(width * 0.003));
-          ctx.fillStyle = style.mainShadow;
-          ctx.fillText(mainTitle, mainX + shadowOffset, mainY + shadowOffset);
-          ctx.fillStyle = style.main;
-          ctx.fillText(mainTitle, mainX, mainY);
-        }
+        // 藝術書法字優先
+        const fontStr = (size) => `bold ${size}px "DFKai-SB", "BiauKai", "Kaiti TC", "STKaiti", "Noto Serif TC", "Noto Sans TC", serif`;
         
-        if (subTitle) {
-          const subX = width / 2;
-          const subY = mainY + (mainFontSize * 0.8);
-          ctx.font = `bold ${subFontSize}px "Noto Sans TC", sans-serif`;
-          ctx.fillStyle = style.subShadow;
-          ctx.fillText(subTitle, subX + 1, subY + 1);
-          ctx.fillStyle = style.sub;
-          ctx.fillText(subTitle, subX, subY);
+        if (visualStep === 7 && mainTitle) {
+          // Step 7 主標直式 (基準線右方 25%)
+          const startX = width * 0.75;
+          const startY = height * 0.15;
+          ctx.font = fontStr(mainFontSize);
+          let currentY = startY;
+          for (let i = 0; i < mainTitle.length; i++) {
+            const char = mainTitle[i];
+            ctx.fillStyle = style.mainShadow;
+            ctx.fillText(char, startX + 2, currentY + 2);
+            ctx.fillStyle = style.main;
+            ctx.fillText(char, startX, currentY);
+            currentY += mainFontSize * 1.1;
+          }
+        } else if (visualStep === 8 && poetry) {
+          // Step 8 詩詞直式 (基準線右方 25%，移除標點)
+          const startX = width * 0.75;
+          const startY = height * 0.15;
+          ctx.font = fontStr(poetryFontSize);
+          const cleanText = poetry.replace(/[，。！？；、\s]/g, "");
+          const lines = [];
+          // 七言四句: 每 7 字換行
+          for (let i = 0; i < cleanText.length; i += 7) {
+            lines.push(cleanText.slice(i, i + 7));
+          }
+          let xOffset = startX;
+          lines.forEach((line) => {
+            let currentY = startY;
+            for (let i = 0; i < line.length; i++) {
+              const char = line[i];
+              ctx.fillStyle = style.mainShadow;
+              ctx.fillText(char, xOffset + 2, currentY + 2);
+              ctx.fillStyle = style.main;
+              ctx.fillText(char, xOffset, currentY);
+              currentY += poetryFontSize * 1.1;
+            }
+            xOffset -= poetryFontSize * 1.3; // 往左換行
+          });
+        } else {
+          // 一般橫式 (主標下移至 25%)
+          const mainX = width / 2;
+          const mainY = height * 0.25;
+          if (mainTitle) {
+            ctx.font = fontStr(mainFontSize);
+            const shadowOffset = Math.max(1, Math.floor(width * 0.003));
+            ctx.fillStyle = style.mainShadow;
+            ctx.fillText(mainTitle, mainX + shadowOffset, mainY + shadowOffset);
+            ctx.fillStyle = style.main;
+            ctx.fillText(mainTitle, mainX, mainY);
+          }
+          if (subTitle) {
+            const subX = width / 2;
+            const subY = mainY + (mainFontSize * 0.8);
+            ctx.font = fontStr(subFontSize);
+            ctx.fillStyle = style.subShadow;
+            ctx.fillText(subTitle, subX + 1, subY + 1);
+            ctx.fillStyle = style.sub;
+            ctx.fillText(subTitle, subX, subY);
+          }
         }
         
         resolve(canvas.toDataURL('image/png', 0.95));
@@ -362,7 +403,7 @@ export default function App() {
   };
 
   const generateGroupImage = async (group) => {
-    const { id: groupId, prompt, mainTitle, subTitle } = group;
+    const { id: groupId, prompt, mainTitle, subTitle, poetry } = group;
     if (!prompt) return;
     setGeneratingGroups(prev => ({ ...prev, [groupId]: true }));
     addLog(`[Imagen 4.0] 啟動 ${groupId} 繪製進程...`, 'info');
@@ -390,8 +431,8 @@ export default function App() {
         const base64 = data.predictions[0].bytesBase64Encoded;
         const originalImage = `data:image/png;base64,${base64}`;
         
-        // 套用完美中文字型疊加 (若有主/副標)
-        const finalImage = await applyTextOverlayToImageBase64(originalImage, mainTitle, subTitle);
+        // 套用完美中文字型疊加 (若有主/副標或詩詞)
+        const finalImage = await applyTextOverlayToImageBase64(originalImage, mainTitle, subTitle, poetry);
         
         setGroupImages(prev => ({ ...prev, [groupId]: finalImage }));
         addLog(`[Imagen 4.0] ✨ ${groupId} 渲染及字型疊加完成！`, 'success');
