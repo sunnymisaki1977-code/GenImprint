@@ -321,6 +321,19 @@ export default function App() {
     }
   };
 
+  const handleDownloadImage = (url, filename) => {
+    if (!url) {
+      addLog(`[System] 尚未生成影像，無法下載`, 'error');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename || 'image'}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const logsEndRef = useRef(null);
 
 
@@ -1114,7 +1127,10 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                                   Imagen 4.0
                                 </span>
                                 <div className="flex gap-1.5">
-                                  <button className="p-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-all">
+                                  <button 
+                                    onClick={() => handleDownloadImage(groupImages[group.id], group.title)}
+                                    className="p-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-all"
+                                  >
                                     <Download className="w-3.5 h-3.5" />
                                   </button>
                                   <button className="p-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-all">
