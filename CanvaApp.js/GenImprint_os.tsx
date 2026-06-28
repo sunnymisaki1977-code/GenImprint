@@ -250,7 +250,46 @@ export default function App() {
     const text = stepContents[visualStep];
     if (!text) return [];
     
-    // Pattern to match "### 第一組" or "1. 畫格 1"
+    // Step 10 Composite Layout Parsing
+    if (visualStep === 10 && (text.includes('16:9 動態分割構圖') || text.includes('9:16 動態分割構圖') || text.includes('4:3 4 張圖卡'))) {
+      const compositeGroups = [];
+      const blocks = text.split(/(?=16:9 動態分割構圖|9:16 動態分割構圖|### 🖼️ 4:3 4 張圖卡)/);
+      blocks.forEach((block, index) => {
+        if (!block.trim()) return;
+        let layoutType = "";
+        let layoutName = "";
+        if (block.includes("16:9 動態分割構圖")) { layoutType = "16:9"; layoutName = "16:9 動態分割構圖"; }
+        else if (block.includes("9:16 動態分割構圖")) { layoutType = "9:16"; layoutName = "9:16 動態分割構圖"; }
+        else if (block.includes("4:3 4 張圖卡")) { layoutType = "4:3"; layoutName = "4:3 排版字卡"; }
+        else return; // Ignore introductory text
+        
+        const mainTitleMatch = block.match(/(?:主標|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+        const subTitleMatch = block.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
+        
+        const frameRegex = /\d+\.\s*(畫格\s*\d+)[^\n]*\n([\s\S]*?)(?=(?:\n\s*\d+\.\s*畫格\s*\d+|$))/g;
+        const frames = [];
+        let frameMatch;
+        while ((frameMatch = frameRegex.exec(block)) !== null) {
+          const frameContent = frameMatch[2];
+          const promptMatch = frameContent.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt)\s*[：:]\s*(.*?)(?=\n|$)/);
+          frames.push(promptMatch ? promptMatch[1].trim() : "無法自動擷取提示詞");
+        }
+        
+        if (frames.length > 0) {
+          compositeGroups.push({
+            id: `composite-${visualStep}-${index}`,
+            title: layoutName,
+            layoutType: layoutType,
+            frames: frames,
+            mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
+            subTitle: subTitleMatch ? subTitleMatch[1].trim() : ""
+          });
+        }
+      });
+      if (compositeGroups.length > 0) return compositeGroups;
+    }
+    
+    // Original Pattern to match "### 第一組" or "1. 畫格 1"
     const regex = /(?:###\s*(第[一二三四五六七八九十\d]+組)|(?:^|\n)\s*\d+\.\s*(畫格\s*\d+))[^\n]*\n([\s\S]*?)(?=(?:###\s*第[一二三四五六七八九十\d]+組)|(?:^|\n)\s*\d+\.\s*畫格\s*\d+|$)/g;
     const groups = [];
     let match;
@@ -294,6 +333,98 @@ export default function App() {
     
     return groups;
   }, [stepContents, visualStep]);
+
+  const drawCover = (ctx, img, x, y, w, h) => {
+    const imgRatio = img.width / img.height;
+    const targetRatio = w / h;
+    let srcW = img.width;
+    let srcH = img.height;
+    let srcX = 0;
+    let srcY = 0;
+    if (imgRatio > targetRatio) {
+      srcW = srcH * targetRatio;
+      srcX = (img.width - srcW) / 2;
+    } else {
+      srcH = srcW / targetRatio;
+      srcY = (img.height - srcH) / 2;
+    }
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, x, y, w, h);
+  };
+
+  const createCompositeCanvas = async (imagesBase64, layoutType, mainTitle, subTitle) => {
+    return new Promise(async (resolve) => {
+      const loadedImages = await Promise.all(imagesBase64.map(src => {
+        return new Promise((res, rej) => {
+          const img = new Image();
+          img.crossOrigin = "Anonymous";
+          img.onload = () => res(img);
+          img.onerror = () => rej();
+          img.src = src;
+        });
+      }));
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      
+      if (layoutType === "16:9") {
+        width = 1920; height = 1080;
+        canvas.width = width; canvas.height = height;
+        // Frame 1: Left half
+        if(loadedImages[0]) drawCover(ctx, loadedImages[0], 0, 0, width/2, height);
+        // Frame 2,3,4,5: Right half grid
+        if(loadedImages[1]) drawCover(ctx, loadedImages[1], width/2, 0, width/4, height/2);
+        if(loadedImages[2]) drawCover(ctx, loadedImages[2], width*0.75, 0, width/4, height/2);
+        if(loadedImages[3]) drawCover(ctx, loadedImages[3], width/2, height/2, width/4, height/2);
+        if(loadedImages[4]) drawCover(ctx, loadedImages[4], width*0.75, height/2, width/4, height/2);
+      } else if (layoutType === "9:16") {
+        width = 1080; height = 1920;
+        canvas.width = width; canvas.height = height;
+        // Frame 1: Top half
+        if(loadedImages[0]) drawCover(ctx, loadedImages[0], 0, 0, width, height/2);
+        // Frame 2,3,4,5: Bottom half grid
+        if(loadedImages[1]) drawCover(ctx, loadedImages[1], 0, height/2, width/2, height/4);
+        if(loadedImages[2]) drawCover(ctx, loadedImages[2], width/2, height/2, width/2, height/4);
+        if(loadedImages[3]) drawCover(ctx, loadedImages[3], 0, height*0.75, width/2, height/4);
+        if(loadedImages[4]) drawCover(ctx, loadedImages[4], width/2, height*0.75, width/2, height/4);
+      } else if (layoutType === "4:3") {
+        width = 1440; height = 1080;
+        canvas.width = width; canvas.height = height;
+        // 2x2 grid
+        if(loadedImages[0]) drawCover(ctx, loadedImages[0], 0, 0, width/2, height/2);
+        if(loadedImages[1]) drawCover(ctx, loadedImages[1], width/2, 0, width/2, height/2);
+        if(loadedImages[2]) drawCover(ctx, loadedImages[2], 0, height/2, width/2, height/2);
+        if(loadedImages[3]) drawCover(ctx, loadedImages[3], width/2, height/2, width/2, height/2);
+      }
+      
+      // Add border around frames for layout distinction
+      ctx.strokeStyle = "#1A1A1A";
+      ctx.lineWidth = 12;
+      ctx.beginPath();
+      if (layoutType === "16:9") {
+        ctx.moveTo(width/2, 0); ctx.lineTo(width/2, height);
+        ctx.moveTo(width/2, height/2); ctx.lineTo(width, height/2);
+        ctx.moveTo(width*0.75, 0); ctx.lineTo(width*0.75, height);
+      } else if (layoutType === "9:16") {
+        ctx.moveTo(0, height/2); ctx.lineTo(width, height/2);
+        ctx.moveTo(width/2, height/2); ctx.lineTo(width/2, height);
+        ctx.moveTo(0, height*0.75); ctx.lineTo(width, height*0.75);
+      } else if (layoutType === "4:3") {
+        ctx.moveTo(width/2, 0); ctx.lineTo(width/2, height);
+        ctx.moveTo(0, height/2); ctx.lineTo(width, height/2);
+      }
+      ctx.stroke();
+      
+      const compositedBase64 = canvas.toDataURL('image/png', 0.95);
+      
+      if (mainTitle || subTitle) {
+        const finalImage = await applyTextOverlayToImageBase64(compositedBase64, mainTitle, subTitle, "");
+        resolve(finalImage);
+      } else {
+        resolve(compositedBase64);
+      }
+    });
+  };
 
   const applyTextOverlayToImageBase64 = (base64Image, mainTitle, subTitle, poetry) => {
     return new Promise((resolve) => {
@@ -377,10 +508,9 @@ export default function App() {
               ctx.fillText(char, xOffset, currentY);
               currentY += poetryFontSize * 1.1;
             }
-            xOffset -= poetryFontSize * 1.3; // 往左換行
+            xOffset -= poetryFontSize * 1.3;
           });
         } else {
-          // 一般橫式 (主標下移至 25%)
           const mainX = width / 2;
           const mainY = height * 0.25;
           if (mainTitle) {
@@ -416,7 +546,7 @@ export default function App() {
     addLog(`[Imagen 4.0] 啟動 ${groupId} 繪製進程...`, 'info');
     
     try {
-      const apiKey = ""; // Canvas 預覽環境會自動帶入
+      const apiKey = "";
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
       
       let aspectRatio = "1:1";
@@ -438,7 +568,6 @@ export default function App() {
         const base64 = data.predictions[0].bytesBase64Encoded;
         const originalImage = `data:image/png;base64,${base64}`;
         
-        // 套用完美中文字型疊加 (若有主/副標或詩詞)
         const finalImage = await applyTextOverlayToImageBase64(originalImage, mainTitle, subTitle, poetry);
         
         setGroupImages(prev => ({ ...prev, [groupId]: finalImage }));
@@ -448,7 +577,46 @@ export default function App() {
         throw new Error(data.error?.message || "未收到圖片資料");
       }
     } catch (err) {
-      addLog(`[Imagen 4.0] 繪製失敗: ${err.message}`, 'error');
+      addLog(`[Imagen 4.0] ${groupId} 繪製失敗: ${err.message}`, 'error');
+    } finally {
+      setGeneratingGroups(prev => ({ ...prev, [groupId]: false }));
+    }
+  };
+
+  const generateCompositeImage = async (group) => {
+    const { id: groupId, frames, layoutType, mainTitle, subTitle } = group;
+    if (!frames || frames.length === 0) return;
+    
+    setGeneratingGroups(prev => ({ ...prev, [groupId]: true }));
+    addLog(`[Imagen 4.0] 啟動 ${layoutType} 排版並發渲染進程 (${frames.length} 張圖)...`, 'info');
+    
+    try {
+      const apiKey = ""; 
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+      
+      const base64Images = await Promise.all(frames.map(async (prompt) => {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            instances: [{ prompt: prompt }],
+            parameters: { sampleCount: 1, aspectRatio: "1:1" }
+          })
+        });
+        const data = await response.json();
+        if (data.predictions && data.predictions[0]) {
+           return `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+        }
+        throw new Error(data.error?.message || "未收到圖片資料");
+      }));
+      
+      const compositedImage = await createCompositeCanvas(base64Images, layoutType, mainTitle, subTitle);
+      
+      setGroupImages(prev => ({ ...prev, [groupId]: compositedImage }));
+      addLog(`[Imagen 4.0] ✨ ${groupId} 組合拼圖渲染及字型疊加完成！`, 'success');
+      setCredits(prev => Math.max(0, prev - 5 * frames.length));
+    } catch (err) {
+      addLog(`[Imagen 4.0] 拼圖繪製失敗: ${err.message}`, 'error');
     } finally {
       setGeneratingGroups(prev => ({ ...prev, [groupId]: false }));
     }
@@ -468,8 +636,6 @@ export default function App() {
   };
 
   const logsEndRef = useRef(null);
-
-
   useEffect(() => {
     let progressInterval;
     if (isPlayingMusic) {
@@ -500,22 +666,15 @@ export default function App() {
     addLog(selectedTheme.themeLogMessage, 'info');  
   };
 
-  // ============================================================================
-  // 4. 改寫全自動生成引擎 (打 Vercel API)
-  // ============================================================================
   const runAutoGeneration = async (startTheme) => {
-      
     setIsGenerating(true);
-        setMode('auto');
+    setMode('auto');
     setViewState('workspace');
     setCompletedSteps([]);
-    
     let currentContextContents = {}; 
-
     for (let step = 1; step <= 10; step++) {
       setActiveStep(step);
       addLog(`[Process] 正在向 Vercel 請求真實生成 Step ${step}: ${STEPS[step - 1].name}...`);
-
       try {
         const context = {
           theme: startTheme,
@@ -525,69 +684,44 @@ export default function App() {
           step4: currentContextContents[4] || "",
           step5: currentContextContents[5] || "",
         };
-
-        // 直接向 Vercel 要資料
         const resultText = await callVercelApi(step, context);
-
         currentContextContents[step] = resultText;
-        setStepContents(prev => ({
-          ...prev,
-          [step]: resultText
-        }));
-        
+        setStepContents(prev => ({ ...prev, [step]: resultText }));
         setCompletedSteps(prev => [...new Set([...prev, step])]);
         addLog(`[AI] ✨ Step ${step} 內容從伺服器回傳完畢！`, 'success');
-
         await new Promise(resolve => setTimeout(resolve, 1500));
-
       } catch (error) {
         addLog(`[Error] Step ${step} 生成失敗: ${error.message}，中止全自動流程。`, 'error');
         setIsGenerating(false);
         return; 
       }
     }
-
     setIsGenerating(false);
     addLog("[System] ✨ 10-Step 全自動企劃產出完畢！您的矩陣內容已備妥。", 'success');
     setCredits(prevCredits => Math.max(0, prevCredits - 15));
-    
-    // 自動匯出至 Notion
     await startNotionExport(currentContextContents, startTheme);
   };
 
-    const handleLoadArchive = async (e) => {
+  const handleLoadArchive = async (e) => {
     const pageId = e.target.value;
     if (!pageId) return;
-
     if (pageId === "open_current") {
       if (notionUrl) window.open(notionUrl, '_blank');
-      setSelectedArchive(""); // Reset selection
+      setSelectedArchive("");
       return;
     }
-
     setSelectedArchive(pageId);
     setIsLoadingArchive(true);
     addLog(`[Notion] 正在從雲端載入專案資料...`, 'info');
-
     try {
-      // 向 Vercel 請求該 Notion 頁面的詳細內容
       const response = await fetch(`https://gen-imprint.vercel.app/api/notion/history?id=${pageId}`);
       const data = await response.json();
-
       if (data.stepsData) {
-        // 成功抓取後，一鍵把內容填回編輯器！
-        // 如果原本存檔有 theme 屬性就更新，沒有的話使用預設
         if (data.theme) setTheme(data.theme); 
         setStepContents({
-          1: data.stepsData[1] || "",
-          2: data.stepsData[2] || "",
-          3: data.stepsData[3] || "",
-          4: data.stepsData[4] || "",
-          5: data.stepsData[5] || "",
-          6: data.stepsData[6] || "",
-          7: data.stepsData[7] || "",
-          8: data.stepsData[8] || "",
-          9: data.stepsData[9] || "",
+          1: data.stepsData[1] || "", 2: data.stepsData[2] || "", 3: data.stepsData[3] || "",
+          4: data.stepsData[4] || "", 5: data.stepsData[5] || "", 6: data.stepsData[6] || "",
+          7: data.stepsData[7] || "", 8: data.stepsData[8] || "", 9: data.stepsData[9] || "",
           10: data.stepsData[10] || ""
         });
         addLog(`[Notion] ✨ 專案載入成功！`, 'success');
@@ -623,30 +757,20 @@ export default function App() {
     setStepContents(prev => ({ ...prev, [activeStep]: text }));
   };
 
-  // ============================================================================
-  // 5. 改寫手動單步生成 (打 Vercel API)
-  // ============================================================================
   const triggerSingleStepAi = async () => {
     addLog(`[AI] 正在向 Vercel 雲端請求... 重新生成 Step ${activeStep}`, 'info');
-        setIsGenerating(true);
-    
+    setIsGenerating(true);
     try {
       const context = {
         theme: theme || "未命名企劃主題",
-        step1: stepContents[1] || "",
-        step2: stepContents[2] || "",
-        step3: stepContents[3] || "",
-        step4: stepContents[4] || "",
-        step5: stepContents[5] || "",
+        step1: stepContents[1] || "", step2: stepContents[2] || "", step3: stepContents[3] || "",
+        step4: stepContents[4] || "", step5: stepContents[5] || "",
       };
-
       const resultText = await callVercelApi(activeStep, context);
-
       setStepContents(prev => ({ ...prev, [activeStep]: resultText }));
       setCompletedSteps(prev => [...new Set([...prev, activeStep])]);
       setCredits(prevCredits => Math.max(0, prevCredits - 2));
       addLog(`[AI] ✨ Step ${activeStep} 內容生成完畢！已成功渲染至編輯器。`, 'success');
-
     } catch (error) {
       console.error("生成失敗:", error);
       addLog(`[Error] 生成失敗: ${error.message}`, 'error');
@@ -656,68 +780,49 @@ export default function App() {
     }
   };
 
-// --- 匯出資料至 Notion ---
-const startNotionExport = async (customContents = null, customTheme = null) => {
-  setIsNotionExporting(true);
-  setNotionStatus('正在同步至 Notion...');
-  addLog(`[System] 開始封裝企劃資料，自動準備匯出...`, 'info');
-
-  try {
-    // 呼叫我們自己的 Vercel 後端 Notion API
-    const VERCEL_NOTION_URL = 'https://gen-imprint.vercel.app/api/notion';
-    
-    const targetTheme = customTheme || theme || "未命名企劃主題";
-    const targetContents = customContents || stepContents;
-
-    // 封裝目前所有的輸入與生成結果，符合後端 /api/notion 預期的格式
-    const payload = {
-      theme: targetTheme,
-      stepsData: targetContents,
-      creatorName: curTheme.title // 動態抓取目前選擇的角色名稱（例如：全職影音創作者）
-    };
-
-    const response = await fetch(VERCEL_NOTION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      throw new Error(`伺服器錯誤: ${response.status}`);
+  const startNotionExport = async (customContents = null, customTheme = null) => {
+    setIsNotionExporting(true);
+    setNotionStatus('正在同步至 Notion...');
+    addLog(`[System] 開始封裝企劃資料，自動準備匯出...`, 'info');
+    try {
+      const VERCEL_NOTION_URL = 'https://gen-imprint.vercel.app/api/notion';
+      const targetTheme = customTheme || theme || "未命名企劃主題";
+      const targetContents = customContents || stepContents;
+      const payload = {
+        theme: targetTheme,
+        stepsData: targetContents,
+        creatorName: curTheme.title
+      };
+      const response = await fetch(VERCEL_NOTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error(`伺服器錯誤: ${response.status}`);
+      const data = await response.json();
+      setNotionStatus('✅ 已成功歸檔');
+      addLog(`[Notion] ✨ 企劃匯出成功！`, 'success');
+      if (data.url) {
+        setNotionUrl(data.url);
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error("Notion 匯出失敗:", error);
+      setNotionStatus('❌ 歸檔失敗');
+      addLog(`[Error] 匯出失敗: ${error.message}`, 'error');
+    } finally {
+      setIsNotionExporting(false);
     }
-
-    const data = await response.json();
-    
-    setNotionStatus('✅ 已成功歸檔');
-    addLog(`[Notion] ✨ 企劃匯出成功！`, 'success');
-    
-    // 自動開啟剛剛建好的 Notion 頁面並儲存 URL
-    if (data.url) {
-      setNotionUrl(data.url);
-      window.open(data.url, '_blank');
-    }
-    
-  } catch (error) {
-    console.error("Notion 匯出失敗:", error);
-    setNotionStatus('❌ 歸檔失敗');
-    addLog(`[Error] 匯出失敗: ${error.message}`, 'error');
-  } finally {
-    setIsNotionExporting(false);
-  }
-};
+  };
 
   const generateNewImage = async () => {
     if (visualGroups.length === 0) return;
     setIsGeneratingImage(true);
     addLog(`[Visual Hub] 開始批次發送 ${visualGroups.length} 組 Prompt 至 Imagen 4.0 API 端點...`, 'info');
-    
-    await Promise.all(visualGroups.map(group => generateGroupImage(group)));
-    
+    await Promise.all(visualGroups.map(group => group.frames ? generateCompositeImage(group) : generateGroupImage(group)));
     setIsGeneratingImage(false);
     addLog(`[Visual Hub] 🎨 所有 Imagen 4.0 影像生成完畢！`, 'success');
   };
-
-  
 
   const getAiStatusColor = () => {
     if (aiStatus === 'pro') return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
@@ -727,12 +832,8 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
 
   return (
     <div className="flex h-screen bg-[#030712] text-slate-100 font-sans overflow-hidden selection:bg-indigo-500/30">
-      
-      {/* --- STREAMING_CHUNK:Left Navigation Bar --- */}
       <aside className="w-64 bg-[#070b16] border-r border-slate-900 flex flex-col justify-between z-20 shrink-0">
         <div className="p-5">
-          
-          {/* Logo */}
           <div className="flex items-center gap-3 mb-8 px-1">
             <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${curTheme.gradient} flex items-center justify-center shadow-lg transition-all duration-700`}>
               <Sparkles className="w-4.5 h-4.5 text-white" />
@@ -743,8 +844,6 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
               </h1>
             </div>
           </div>
-
-          {/* Navigation Links (Matching Design exactly) */}
           <nav className="space-y-1.5">
             {[
               { id: 'creation', icon: FileText, label: '內容創作中心' },
@@ -758,11 +857,8 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                   <button 
                     onClick={() => {
                       setActiveTab(tab.id);
-                      if (tab.id === 'creation' && viewState === 'workspace') {
-                        // Stay in workspace if already open
-                      } else {
-                        setViewState('hub');
-                      }
+                      if (tab.id === 'creation' && viewState === 'workspace') {} 
+                      else { setViewState('hub'); }
                     }}
                     className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl font-medium text-xs transition-all text-left border relative ${
                       isActive 
@@ -770,32 +866,22 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 border-transparent'
                     }`}
                   >
-                    {/* Left indicator active line */}
-                    {isActive && (
-                      <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-md bg-gradient-to-b ${curTheme.gradient}`} />
-                    )}
+                    {isActive && <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-md bg-gradient-to-b ${curTheme.gradient}`} />}
                     <tab.icon className="w-4.5 h-4.5 shrink-0" />
                     <span className="font-semibold">{tab.label}</span>
                   </button>
-                  
-                  {/* 視覺裂變 (在左側選單視覺發控中心下) */}
                   {isActive && tab.id === 'visual' && (
                     <div className="mx-2 p-4 bg-[#0f172a]/70 border border-slate-800/80 rounded-xl space-y-4 backdrop-blur-md">
                       <h4 className="text-[10px] font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-                        <Sliders className="w-3.5 h-3.5 text-indigo-400" />
-                        視覺裂變
+                        <Sliders className="w-3.5 h-3.5 text-indigo-400" />視覺裂變
                       </h4>
-
                       <div className="space-y-3">
                         <div>
                           <label className="text-[10px] text-slate-500 font-bold block mb-1">影音縮圖</label>
                           <select className="w-full bg-[#070b16] border border-slate-950 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 focus:outline-none">
-                            <option>長影音</option>
-                            <option>短影音</option>
-                            <option>社群FB/IG</option>
+                            <option>長影音</option><option>短影音</option><option>社群FB/IG</option>
                           </select>
                         </div>
-
                         <div>
                           <label className="text-[10px] text-slate-500 font-bold block mb-1">輸出比例</label>
                           <select 
@@ -809,20 +895,6 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                             <option value={10}>1:1 / 4:3 - 社群視覺素材 (IG Post)</option>
                           </select>
                         </div>
-
-                        <div>
-                          <label className="text-[10px] text-slate-500 font-bold block mb-1">畫風濾鏡</label>
-                          <div className="grid grid-cols-2 gap-1.5">
-                            {['霓虹電競', '寫實極簡', '3D 賽博', '手繪動漫'].map((style, idx) => (
-                              <button 
-                                key={style}
-                                className={`px-2 py-1.5 rounded-lg text-[9px] font-bold border text-center ${idx === 0 ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300' : 'border-slate-800 text-slate-500'}`}
-                              >
-                                {style}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
                       </div>
                     </div>
                   )}
@@ -831,15 +903,10 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
             })}
           </nav>
         </div>
-
-        {/* Bottom Sidebar Controls */}
         <div className="p-4 border-t border-slate-900 space-y-3">
-          {/* Notion Connected Indicator */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/30 border border-slate-900">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-black flex items-center justify-center font-black text-xs text-white border border-slate-800">
-                N
-              </div>
+              <div className="w-7 h-7 rounded-lg bg-black flex items-center justify-center font-black text-xs text-white border border-slate-800">N</div>
               <div className="text-[11px]">
                 <p className="font-semibold text-slate-300">Notion 連動中</p>
                 <p className="text-[9px] text-slate-500">v2.4.1 Active</p>
@@ -847,26 +914,11 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
             </div>
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
-
-          {/* Light Mode Switcher */}
-          <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-400 hover:text-white text-xs hover:bg-slate-900/40 transition-all">
-            <div className="flex items-center gap-2.5">
-              <Sun className="w-4 h-4 text-slate-500" />
-              <span className="font-medium text-slate-400 text-[11px]">淺色模式</span>
-            </div>
-            <div className="w-8 h-4 rounded-full bg-slate-800 flex items-center p-0.5 justify-start">
-              <div className="w-3 h-3 rounded-full bg-slate-500" />
-            </div>
-          </button>
         </div>
       </aside>
 
-      {/* --- STREAMING_CHUNK:Center Main Workspace Area --- */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#0a0f1d] relative">
-        
-        {/* Top Header */}
         <header className="h-16 border-b border-slate-900 bg-[#0a0f1d]/80 backdrop-blur-md flex items-center justify-between px-6 z-10 shrink-0">
-          {/* Top Search Input Box */}
           <div className="w-96 relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input 
@@ -877,282 +929,85 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
               className="w-full bg-[#111827]/60 border border-slate-800/80 rounded-xl py-2 pl-10 pr-4 text-xs font-medium text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 transition-all"
             />
           </div>
-
-          {/* Top Action Buttons & Metrics */}
           <div className="flex items-center gap-4">
-            {/* 移除手動輸入金鑰框，改為顯示已連接狀態 */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-[10px]">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Canvas 環境已授權</span>
+              <Sparkles className="w-3.5 h-3.5" /><span>Canvas 環境已授權</span>
             </div>
-
-            {/* 一鍵全自動模式 Header Button */}
             <button 
               onClick={handleStartAuto}
               className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-indigo-500/10 hover:shadow-indigo-500/20 active:scale-95 transition-all"
             >
-              <Zap className="w-3.5 h-3.5" />
-              <span>一鍵全自動模式</span>
+              <Zap className="w-3.5 h-3.5" /><span>一鍵全自動模式</span>
             </button>
-
-            {/* Quota Metric Button */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 font-bold text-xs">
-              <Zap className="w-3.5 h-3.5 fill-amber-500/20" />
-              <span>{credits} 點額度</span>
-            </div>
-
-            {/* User Avatar */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-xs font-extrabold text-white shadow-lg border border-indigo-500/20 cursor-pointer hover:scale-105 transition-all">
-              SH
+              <Zap className="w-3.5 h-3.5 fill-amber-500/20" /><span>{credits} 點額度</span>
             </div>
           </div>
         </header>
 
-        {/* --- Central Main Content Panels --- */}
         <div className="flex-1 overflow-hidden flex flex-col relative">
-          
-          {/* CONTENT TABS */}
           {activeTab === 'creation' && (
             viewState === 'hub' ? (
-              /* --- STREAMING_CHUNK:Rendering Central Creator Welcome Hub --- */
               <div className="flex-1 p-8 flex flex-col items-center justify-center overflow-y-auto relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/10 via-[#0a0f1d] to-[#030712]">
-                
-                {/* Glowing Background Glows */}
                 <div className={`absolute top-1/4 w-96 h-96 rounded-full bg-gradient-to-br ${curTheme.gradient} opacity-5 blur-[120px] pointer-events-none`} />
-
                 <div className="w-full max-w-2xl bg-[#0f172a]/60 border border-slate-900/80 rounded-3xl p-8 backdrop-blur-xl relative shadow-2xl space-y-8">
-                  {/* Glowing Top Frame Accent Line */}
                   <div className={`absolute left-0 right-0 top-0 h-[2px] rounded-t-3xl bg-gradient-to-r ${curTheme.gradient}`} />
-                  
-                  {/* Hub Header */}
                   <div className="text-center space-y-3">
-                    <h2 className="text-3xl font-black tracking-tight text-white">
-                      今天想創作什麼？
-                    </h2>
-                    <p className="text-xs text-slate-400 font-medium max-w-md mx-auto leading-relaxed">
-                      輸入你想探討的主題，AI 將為你生成從研究、長短影音腳本到社群貼文的全域企劃。
-                    </p>
+                    <h2 className="text-3xl font-black tracking-tight text-white">今天想創作什麼？</h2>
+                    <p className="text-xs text-slate-400 font-medium max-w-md mx-auto leading-relaxed">輸入你想探討的主題，AI 將為你生成從研究、長短影音腳本到社群貼文的全域企劃。</p>
                   </div>
-
-                  {/* Dynamic Theme Select Buttons (Horizontal Row as requested) */}
                   <div className="space-y-3">
                     <div className="flex justify-center gap-1.5 flex-wrap">
                       {Object.values(AUDIENCE_THEMES).map((themeObj) => {
                         const isSel = audienceTheme === themeObj.id;
                         return (
-                          <button
-                            key={themeObj.id}
-                            onClick={() => handleThemeChange(themeObj.id)}
-                            className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${
-                              isSel
-                                ? `${themeObj.bgActive} ${themeObj.borderActive} ${themeObj.textActive}`
-                                : 'border-slate-900/50 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
-                            }`}
-                          >
+                          <button key={themeObj.id} onClick={() => handleThemeChange(themeObj.id)} className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${isSel ? `${themeObj.bgActive} ${themeObj.borderActive} ${themeObj.textActive}` : 'border-slate-900/50 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'}`}>
                             {themeObj.title}
                           </button>
                         );
                       })}
                     </div>
                   </div>
-
-                  {/* Main Creative Input Container */}
                   <div className="space-y-4">
                     <div className="relative group">
                       <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-15 group-hover:opacity-25 transition duration-1000"></div>
-                      <input 
-                        type="text"
-                        placeholder="例如：日本京阪神五日遊攻略"
-                        value={theme}
-                        onChange={(e) => setTheme(e.target.value)}
-                        className="w-full relative bg-[#070b16] border border-slate-900 rounded-2xl px-6 py-4 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/30 transition-all shadow-inner"
-                      />
+                      <input type="text" placeholder="例如：日本京阪神五日遊攻略" value={theme} onChange={(e) => setTheme(e.target.value)} className="w-full relative bg-[#070b16] border border-slate-900 rounded-2xl px-6 py-4 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/30 transition-all shadow-inner" />
                     </div>
-
-                    {/* Big Action Buttons */}
                     <div className="grid grid-cols-2 gap-4">
-                      {/* Left: 一鍵全自動模式 */}
-                      <button
-                        onClick={handleStartAuto}
-                        className={`py-4 rounded-2xl ${curTheme.primaryBtn} font-black text-xs flex flex-col items-center justify-center gap-1 transition-all shadow-xl active:scale-98`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Play className="w-4 h-4 fill-white" />
-                          <span>一鍵全自動模式</span>
-                        </div>
-                        <span className="text-[10px] opacity-70 font-normal">單次呼叫，自動化處理所有步驟與歸檔</span>
+                      <button onClick={handleStartAuto} className={`py-4 rounded-2xl ${curTheme.primaryBtn} font-black text-xs flex flex-col items-center justify-center gap-1 transition-all shadow-xl active:scale-98`}>
+                        <div className="flex items-center gap-2"><Play className="w-4 h-4 fill-white" /><span>一鍵全自動模式</span></div>
                       </button>
-
-                      {/* Right: 手動分步編輯 */}
-                      <button
-                        onClick={startManualWorkspace}
-                        className="py-4 rounded-2xl bg-slate-900 hover:bg-slate-800/80 border border-slate-800 text-slate-200 font-black text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-98"
-                      >
-                        <div className="flex items-center gap-2 text-slate-200">
-                          <Sliders className="w-4 h-4 text-slate-400" />
-                          <span>分步編輯工作流</span>
-                        </div>
-                        <span className="text-[10px] text-slate-500 font-normal">手動調校，逐步建構客製化矩陣腳本</span>
+                      <button onClick={startManualWorkspace} className="py-4 rounded-2xl bg-slate-900 hover:bg-slate-800/80 border border-slate-800 text-slate-200 font-black text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-98">
+                        <div className="flex items-center gap-2 text-slate-200"><Sliders className="w-4 h-4 text-slate-400" /><span>分步編輯工作流</span></div>
                       </button>
                     </div>
-                  </div>
-
-                  {/* Notion Load Project Component */}
-                  <div className="pt-4 border-t border-slate-900/60 flex flex-col items-center gap-3">
-                    <div className="flex items-center gap-2 text-indigo-400">
-                      <UploadCloud className="w-4.5 h-4.5" />
-                      <span className="text-xs font-bold">從 Notion 載入已歸檔專案</span>
-                    </div>
-                    
-                    {/* Simulated dropdown */}
-                    <div className="w-full relative">
-  <select 
-    value={selectedArchive}
-    onChange={handleLoadArchive}
-    className="w-full bg-[#070b16] border border-slate-950 rounded-xl px-4 py-3 text-xs font-semibold text-slate-400 hover:text-slate-200 focus:outline-none appearance-none cursor-pointer text-center"
-  >
-    <option value="">-- {archiveList.length === 0 ? '載入清單中...' : '點擊選擇團隊專案'} --</option>
-    
-    {/* 這裡會自動把 Notion 裡面的專案名稱跟日期列出來！ */}
-    {archiveList.map((item) => (
-      <option key={item.id} value={item.id}>
-        📄 {item.title} ({item.createdTime})
-      </option>
-    ))}
-  </select>
-  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-</div>
                   </div>
                 </div>
               </div>
             ) : (
-              /* --- STREAMING_CHUNK:Rendering 10-Step Flow Editor Workspace --- */
               <div className="flex-1 flex overflow-hidden">
-                
-                {/* Steps Navigator Left Column */}
                 <div className="w-64 border-r border-slate-900/60 overflow-y-auto bg-[#070b16]/30 p-4 space-y-1.5 custom-scrollbar shrink-0">
-                  <div className="flex items-center justify-between mb-4 px-2">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">10-Step Flow</span>
-                    <span className={`${curTheme.accentText} text-[10px] font-mono`}>{completedSteps.length}/10 已完成</span>
-                  </div>
                   {STEPS.map((step) => {
                     const isActive = activeStep === step.id;
-                    const isDone = completedSteps.includes(step.id);
                     const Icon = step.icon;
                     return (
-                      <button
-                        key={step.id}
-                        onClick={() => setActiveStep(step.id)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left border group ${
-                          isActive 
-                            ? `${curTheme.bgActive} ${curTheme.borderActive} ${curTheme.textActive} shadow-md` 
-                            : 'bg-transparent hover:bg-slate-900/40 text-slate-400 border-transparent'
-                        }`}
-                      >
-                        <div className="relative shrink-0">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isActive ? `${curTheme.bgActive} ${curTheme.textActive}` : 'bg-slate-900 text-slate-500 group-hover:text-slate-300'}`}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          {isDone && (
-                            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-950 flex items-center justify-center shadow-md">
-                              <Check className="w-2 h-2 text-white" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-[9px] text-slate-500 uppercase tracking-widest">Step {step.id}</div>
-                          <div className="text-xs font-bold truncate">{step.name}</div>
-                        </div>
+                      <button key={step.id} onClick={() => setActiveStep(step.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${isActive ? `${curTheme.bgActive} ${curTheme.textActive}` : 'bg-transparent hover:bg-slate-900/40 text-slate-400'}`}>
+                        <Icon className="w-4 h-4" /> <span className="font-bold text-xs">{step.name}</span>
                       </button>
                     );
                   })}
                 </div>
-
-                {/* Markdown editor screen */}
-                <div className="flex-1 bg-[#090d19]/40 p-6 overflow-y-auto relative flex flex-col custom-scrollbar pb-24">
+                <div className="flex-1 bg-[#090d19]/40 p-6 overflow-y-auto relative flex flex-col">
                   <div className="max-w-3xl w-full mx-auto flex-1 flex flex-col">
-                    
-                    {/* Workspace steps Header */}
-                    <div className="flex items-center justify-between mb-6 shrink-0">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <button 
-                            onClick={() => setViewState('hub')}
-                            className="text-xs text-slate-500 hover:text-indigo-400 flex items-center gap-1 font-bold transition-all"
-                          >
-                            ← 返回創作大廳
-                          </button>
-                          <span className="text-slate-600">•</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${curTheme.bgBadge}`}>
-                            STEP {activeStep} • {STEPS[activeStep-1].category}
-                          </span>
-                        </div>
-                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                          {STEPS[activeStep-1].name}
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-1">{STEPS[activeStep-1].desc}</p>
-                      </div>
-
-                      <button 
-                        onClick={triggerSingleStepAi}
-                        disabled={isGenerating}
-                        className={`flex items-center gap-2 px-4 py-2.5 ${curTheme.primaryBtn} disabled:opacity-50 text-xs font-bold rounded-xl transition-all shadow-lg active:scale-95`}
-                      >
-                        <Sparkles className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-                        {isGenerating ? 'AI 優化生成中...' : 'AI 重新生成與潤飾'}
-                      </button>
-                    </div>
-
-                    {/* Notion synced alert banner */}
-                    {notionStatus === '已同步至 Notion' && (
-                      <div className="mb-4 px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs flex items-center gap-2">
-                        <CheckCircle2 className="w-4.5 h-4.5" />
-                        <span>本企劃步驟內容已與 Notion 雲端檔案即時同步備份。</span>
-                      </div>
-                    )}
-
-                    {/* Markdown text editor card */}
                     <div className="flex-1 bg-[#0f172a]/50 border border-slate-900 rounded-2xl shadow-xl flex flex-col overflow-hidden">
-                      <div className="px-4 py-2.5 bg-[#0a0f1d] border-b border-slate-900 flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                          <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-                          <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                          <span className="text-[10px] font-mono text-slate-500 ml-2">Markdown Editor</span>
-                        </div>
-                        <div className="text-[10px] text-slate-500 font-medium">
-                          Auto-saved locally
-                        </div>
-                      </div>
-
                       <div className="flex-1 relative min-h-[500px]">
-                        {/* AI 正在生成時，顯示 MP4 讀取動畫 */}
                         {isGenerating ? (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#090d19]/90 z-10 backdrop-blur-md">
-                            <video 
-                              src="https://res.cloudinary.com/dhvzfeo7p/video/upload/q_auto/f_auto/v1780920395/_%E5%9C%96%E7%94%9F%E5%8B%95%E7%95%AB%E8%A6%8F%E5%8A%83_Animation_Planning__o5hw6k.mp4" 
-                              autoPlay 
-                              loop 
-                               
-                              playsInline
-                              className="w-[600px] h-[340px] object-cover rounded-2xl shadow-[0_0_40px_rgba(168,85,247,0.15)] mb-6"
-                            />
-                            <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 animate-pulse tracking-wider">
-                              AI 核心引擎高速運算中...
-                            </h3>
-                            <p className="text-slate-400 mt-3 text-sm flex items-center gap-2">
-                              <RefreshCw className="w-4 h-4 animate-spin" />
-                              正在從伺服器抓取資料，請稍候
-                            </p>
-                          </div>
+                           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#090d19]/90 z-10 backdrop-blur-md">
+                             <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 animate-pulse tracking-wider">AI 核心引擎高速運算中...</h3>
+                             <p className="text-slate-400 mt-3 text-sm flex items-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" />正在從伺服器抓取資料，請稍候</p>
+                           </div>
                         ) : (
-                          /* 生成完畢後，顯示原本的文字編輯器 */
-                          <div 
-                            contentEditable
-                            suppressContentEditableWarning
-                            onBlur={handleEditorChange}
-                            className="absolute inset-0 p-6 font-mono text-sm text-slate-300 focus:outline-none overflow-y-auto whitespace-pre-wrap leading-relaxed select-text cursor-text"
-                          >
+                          <div contentEditable suppressContentEditableWarning onBlur={handleEditorChange} className="absolute inset-0 p-6 font-mono text-sm text-slate-300 focus:outline-none overflow-y-auto whitespace-pre-wrap leading-relaxed select-text cursor-text">
                             {stepContents[activeStep]}
                           </div>
                         )}
