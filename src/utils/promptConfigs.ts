@@ -235,7 +235,7 @@ Suno AI Prompt：[請填入包含參數的中文 Prompt 內容]`,
 【基礎背景史料】：
 ${ctx.step1}
 
-請嚴格遵循以下三大任務與格式要求：
+請嚴格遵循以下二大任務與格式要求：
 
 ---
 ### 任務一：生成動態視覺 Prompt (Midjourney / Imagen)
@@ -244,11 +244,7 @@ ${ctx.step1}
 畫面必須融合【動態分割構圖（Dynamic Segmented Layout）】、【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】與【蒙太奇資訊圖表（Montage Infographic）】三種視覺語言。
 整體風格採用 colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。	
 
-### 任務二：設計 4 張圖卡排版字卡
-請將史料轉化為 4 張社群圖卡（4:3）的排版字卡。每張字卡必須具備強烈的敘事性，並符合現代社群閱讀習慣（字數精簡、標題吸睛）。
-視覺設計必須包含風格標籤 (colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed)
-
-### 任務三：撰寫社群發布正文
+### 任務二：撰寫社群發布正文
 使用生動、能引起現代人共鳴的語氣。將史料轉化為 3~5 點易讀的亮點解析，並以提問開場，以祈福導流收尾。
 
 ---
@@ -256,9 +252,8 @@ ${ctx.step1}
 
 ### 🎨 視覺 Prompt
   16:9 動態分割構圖提示詞：  
-以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】，以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張16:9【蒙太奇資訊圖表（Montage Infographic）】。
-
-主標題：  [請填入主標題]
+以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】，以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張16:9【蒙太奇資訊圖表（Montage Infographic）】
+  主標題：  [請填入主標題]
 1.   畫格 1：   [蒙太奇資訊名稱 1]
    視覺描述：  [請填入視覺描述]
 2.   畫格 2：   [蒙太奇資訊名稱 2]
@@ -277,7 +272,7 @@ AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden par
   9:16 動態分割構圖提示詞：  
 以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】，以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張9:16【蒙太奇資訊圖表（Montage Infographic）】。
 
-主標題：  [請填入主標題]
+  主標題：  [請填入主標題]
 1.   畫格 1：   [蒙太奇資訊名稱 1]
    視覺描述：  [請填入視覺描述中文 Prompt]
 2.   畫格 2：   [蒙太奇資訊名稱 2]
