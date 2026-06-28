@@ -253,53 +253,49 @@ ${ctx.step1}
 
 ---
 【格式絕對鎖定指令】（請直接輸出以下格式，禁止任何問候與結語）：
-使用引號：在 Prompt 中，使用單引號或雙引號將中文包起來（例如："新年快樂"），讓模型明確知道這是要印出來的字。
 
 ### 🎨 視覺 Prompt
   16:9 動態分割構圖提示詞：  
-以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】生成 16:9 彩墨風格，五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張16:9【蒙太奇資訊圖表（Montage Infographic）】
-【格式絕對鎖定指令】：
-AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed。 結尾必須包含：--ar 16:9
+以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】，以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張16:9【蒙太奇資訊圖表（Montage Infographic）】
 
 
   主標題：  [請填入主標題]
-
 1.   畫格 1：   [蒙太奇資訊名稱 1]
-
-   視覺描述：  [請填入視覺描述中文 Prompt]
+   視覺描述：  [請填入視覺描述]
 2.   畫格 2：   [蒙太奇資訊名稱 2]
-
-   視覺描述：  [請填入視覺描述中文 Prompt]
+   視覺描述：  [請填入視覺描述]
 3.   畫格 3：   [蒙太奇資訊名稱 3]
-
-   視覺描述：  [請填入視覺描述中文 Prompt]
+   視覺描述：  [請填入視覺描述]
 4.   畫格 4：   [蒙太奇資訊名稱 4]
-
-   視覺描述：  [請填入視覺描述中文 Prompt]
+   視覺描述：  [請填入視覺描述]
 5.   畫格 5：   [蒙太奇資訊名稱 5]
+   視覺描述：  [請填入視覺描述]
 
-   視覺描述：  [請填入視覺描述中文 Prompt]
+現在，請開始撰寫16:9 動態分割構圖提示詞：
+【格式絕對鎖定指令】：
+AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed，主標題，核心主角五個【蒙太奇資訊】【視覺描述】，運用【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張【蒙太奇資訊圖表（Montage Infographic）】--16:9。
+
 
   9:16 動態分割構圖提示詞：  
-以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】生成 9:16 (直式) 彩墨風格，五組畫格以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張9:16【蒙太奇資訊圖表（Montage Infographic）】
+以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】，以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張16:9【蒙太奇資訊圖表（Montage Infographic）】
+
 
   主標題：  [請填入主標題]
-
 1.   畫格 1：   [蒙太奇資訊名稱 1]
-
    視覺描述：  [請填入視覺描述中文 Prompt]
 2.   畫格 2：   [蒙太奇資訊名稱 2]
-
    視覺描述：  [請填入視覺描述中文 Prompt]
 3.   畫格 3：   [蒙太奇資訊名稱 3]
-
    視覺描述：  [請填入視覺描述中文 Prompt]
 4.   畫格 4：   [蒙太奇資訊名稱 4]
-
    視覺描述：  [請填入視覺描述中文 Prompt]
 5.   畫格 5：   [蒙太奇資訊名稱 5]
-
    視覺描述：  [請填入視覺描述中文 Prompt]
+
+
+現在，請開始撰寫9:16 動態分割構圖提示詞：
+【格式絕對鎖定指令】：
+AI Prompt (中文) 必須包含：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed，主標題，核心主角五個【蒙太奇資訊】【視覺描述】，運用【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張【蒙太奇資訊圖表（Montage Infographic）】--9:16。
 
 
 ### 🖼️ 4:3 4 張圖卡排版字卡提示詞：
