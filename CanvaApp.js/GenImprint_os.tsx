@@ -290,8 +290,19 @@ export default function App() {
     
     const parsedGroups = groups.map((g, index) => {
         const content = g.content;
-        const promptMatch = content.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt|AI Prompt\s*\(中文\)|AI Prompt\s*（中文）)\s*[：:]\s*(.*?)(?=\n|$)/);
-        const promptText = promptMatch ? promptMatch[1].trim() : "無法自動擷取提示詞，請手動確認";
+        
+        let promptText = "無法自動擷取提示詞，請手動確認";
+        // 優先嘗試擷取 AI Prompt (中文) 之後的所有內容 (支援多行)
+        const aiPromptMatch = content.match(/AI\s*Prompt\s*(?:\(中文\)|（中文）)?[：:\s]*(?:必須包含[：:\s]*)?([\s\S]*?)(?=\n(?:主標|副標|詩詞|###|$)|$)/i);
+        if (aiPromptMatch && aiPromptMatch[1].trim().length > 0) {
+            promptText = aiPromptMatch[1].trim();
+        } else {
+            // Fallback: 尋找舊的標籤格式 (單行)
+            const fallbackMatch = content.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt)\s*[：:]\s*(.*?)(?=\n|$)/);
+            if (fallbackMatch && fallbackMatch[1].trim().length > 0) {
+                promptText = fallbackMatch[1].trim();
+            }
+        }
         
         const mainTitleMatch = content.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
         const subTitleMatch = content.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
@@ -318,7 +329,19 @@ export default function App() {
        if (fullText.includes("16:9 動態分割構圖提示詞")) fallbackTitle = "16:9 動態分割構圖";
        else if (fullText.includes("9:16 動態分割構圖提示詞")) fallbackTitle = "9:16 動態分割構圖";
        
-       const promptMatch = fullText.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt|AI Prompt\s*\(中文\)|AI Prompt\s*（中文）)\s*[：:]\s*(.*?)(?=\n|$)/);
+       let promptText = "無法自動擷取提示詞，請手動確認";
+       const aiPromptMatch = fullText.match(/AI\s*Prompt\s*(?:\(中文\)|（中文）)?[：:\s]*(?:必須包含[：:\s]*)?([\s\S]*?)(?=\n(?:主標|副標|詩詞|###|$)|$)/i);
+       if (aiPromptMatch && aiPromptMatch[1].trim().length > 0) {
+           promptText = aiPromptMatch[1].trim();
+       } else {
+           const fallbackMatch = fullText.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt)\s*[：:]\s*(.*?)(?=\n|$)/);
+           if (fallbackMatch && fallbackMatch[1].trim().length > 0) {
+               promptText = fallbackMatch[1].trim();
+           } else {
+               promptText = fullText.substring(0, 150);
+           }
+       }
+       
        const mainTitleMatch = fullText.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
        const subTitleMatch = fullText.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
        const poetryMatch = fullText.match(/詩詞(?:（.*?）)?\s*[：:]\s*([\s\S]*?)(?=\n(?:中文|視覺|主標|副標|高點擊文案|主標題|副標題|AI Prompt)\s*[：:]|$)/);
@@ -326,7 +349,7 @@ export default function App() {
        return [{
          id: `group-${visualStep}-fallback`,
          title: fallbackTitle,
-         prompt: promptMatch ? promptMatch[1].trim() : fullText.substring(0, 150),
+         prompt: promptText,
          mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
          subTitle: subTitleMatch ? subTitleMatch[1].trim() : "",
          poetry: poetryMatch ? poetryMatch[1].trim() : ""

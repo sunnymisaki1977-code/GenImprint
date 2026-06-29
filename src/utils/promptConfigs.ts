@@ -265,6 +265,7 @@ ${ctx.step1}
 5.   畫格 5：   [蒙太奇資訊名稱 5]
    視覺描述：  [請填入視覺描述]
 
+
 【格式絕對鎖定指令】：
 AI Prompt (中文) 必須包含風格：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed，再以主標題，核心主角五個【蒙太奇資訊】【視覺描述】，運用【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張【蒙太奇資訊圖表（Montage Infographic）】--16:9。
 現在，請直接輸出以下格式：
