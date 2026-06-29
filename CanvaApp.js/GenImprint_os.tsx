@@ -1209,10 +1209,11 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                           <button
                             key={themeObj.id}
                             onClick={() => handleThemeChange(themeObj.id)}
+                            disabled={!isSel}
                             className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${
                               isSel
                                 ? `${themeObj.bgActive} ${themeObj.borderActive} ${themeObj.textActive}`
-                                : 'border-slate-900/50 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                                : 'border-slate-900/50 text-slate-500 opacity-50 cursor-not-allowed'
                             }`}
                           >
                             {themeObj.title}
