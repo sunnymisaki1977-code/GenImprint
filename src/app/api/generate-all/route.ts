@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { WORKFLOW_STEPS } from "@/utils/promptConfigs";
+import { getWorkflowSteps } from "@/utils/promptConfigs";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 60; // 延長 Vercel Pro/付費版預設截斷時間
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     // 支援前端指定開始與結束步驟，預設為一次跑完 1~10 步
-    const { theme, customDocText, startFromStep = 1, endStep = 5, existingData = {} } = body;
+    const { theme, customDocText, startFromStep = 1, endStep = 5, existingData = {}, audienceTheme } = body;
 
     const apiKeyRaw = req.headers.get("x-gemini-api-key") || process.env.GEMINI_API_KEY;
     if (!apiKeyRaw) {
@@ -107,6 +107,7 @@ export async function POST(req: Request) {
     // Stage 2: 模組化批次生成內容
     // ==========================================
     // 1. 篩選出本次請求需要生成的步驟
+    const WORKFLOW_STEPS = getWorkflowSteps(audienceTheme || 'CultureTech');
     const targetSteps = WORKFLOW_STEPS.filter(step => step.id >= startFromStep && step.id <= endStep);
     if (targetSteps.length === 0) {
       return NextResponse.json({ error: "無效的步驟範圍" }, { status: 400 });

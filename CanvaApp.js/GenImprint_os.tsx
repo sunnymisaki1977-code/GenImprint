@@ -11,9 +11,9 @@ import {
 } from 'lucide-react';
 
 const AUDIENCE_THEMES = {
-  creator: {
-    id: 'creator',
-    title: '全職影音創作者',
+  CultureTech: {
+    id: 'CultureTech',
+    title: '科技文化創作者',
     subtitle: 'Cinematic Pink 劇院流動風',
     desc: '高對比、暗房極簡、RGB 霓虹電競感。專為長時間調色與靈感爆發設計。',
     gradient: 'from-pink-500 via-purple-500 to-indigo-500',
@@ -31,7 +31,7 @@ const AUDIENCE_THEMES = {
     pipelineCurrent: 'bg-purple-900/40 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.25)]',
     pipelineCurrentIcon: 'bg-purple-500 text-white animate-pulse',
     tagBg: 'bg-purple-500/10 border-purple-500/20 text-purple-300',
-    themeLogMessage: '[Theme] 已切換至「全職影音創作者 (Cinematic Pink)」模式。優化低光源剪輯視覺，啟動 RGB 電競靈感調幅機制 🟢'
+    themeLogMessage: '[Theme] 已切換至「科技文化創作者 (Cinematic Pink)」模式。優化低光源剪輯視覺，啟動 RGB 電競靈感調幅機制 🟢'
   },
   beauty: {
     id: 'beauty',
@@ -55,7 +55,7 @@ const AUDIENCE_THEMES = {
     tagBg: 'bg-pink-500/10 border-pink-500/20 text-pink-300',
     themeLogMessage: '[Theme] 已切換至「時尚美妝保養 (Glamour Rose)」模式。啟動精緻暖色調高光補償，提升美感氛圍 🟢'
   },
-  solopreneur: {
+  travelpreneur: {
     id: 'travelpreneur',
     title: '旅遊先行者',
     subtitle: 'Indie Amber 極速金澄風',
@@ -75,7 +75,7 @@ const AUDIENCE_THEMES = {
     pipelineCurrent: 'bg-amber-900/40 border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.25)]',
     pipelineCurrentIcon: 'bg-amber-500 text-white animate-pulse',
     tagBg: 'bg-amber-500/10 border-amber-500/20 text-amber-300',
-    themeLogMessage: '[Theme] 已切換至「一人創業家 (Indie Amber)」模式。高對比金黃預警，啟動單兵作戰、快速發布極速模式 🟢'
+    themeLogMessage: '[Theme] 已切換至「旅遊先行者 (Indie Amber)」模式。高對比金黃預警，啟動單兵作戰、快速發布極速模式 🟢'
   },
   food: {
     id: 'food',
@@ -131,7 +131,7 @@ async function callVercelApi(stepId: any, context: any) {
     const promptResponse = await fetch(VERCEL_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stepId, context })
+        body: JSON.stringify({ stepId, context, audienceTheme })
     });
     if (!promptResponse.ok) {
         throw new Error(`Vercel 邏輯引擎錯誤: ${promptResponse.status}`);
@@ -159,7 +159,8 @@ async function callVercelApi(stepId: any, context: any) {
 // ============================================================================
 // 2. 瘦身版 STEPS (已移除 Prompt，交由 Vercel 後端處理)
 // ============================================================================
-const STEPS = [
+const THEME_STEPS = {
+  CultureTech: [
   { id: 1, name: '基礎背景事實查核', icon: Database, category: 'Research', desc: '針對主題進行定義釐清與客觀史料彙整', type: "text", dependsOn: ["theme"] },
   { id: 2, name: "長影音腳本撰寫", icon: FileText, category: 'Content', desc: "根據基礎背景，產出 5-10 分鐘的 YouTube 長影片文案。", type: "text", dependsOn: ["theme", "step1"] },
   { id: 3, name: "長影音 SEO 優化", icon: Search, category: 'Optimization', desc: "生成標題、標籤與說明欄內容。", type: "text", dependsOn: ["theme", "step2"] },
@@ -170,7 +171,20 @@ const STEPS = [
   { id: 8, name: "彩墨風格意象圖", icon: ImageIcon, category: 'Visuals', desc: "生成 3 組 16:9 意象圖指令與搭配詩詞。", type: "code", language: "markdown", dependsOn: ["theme"] },
   { id: 9, name: "Suno AI 配樂設計", icon: Music, category: 'Audio', desc: "生成 3 組符合主題氛圍的音樂生成指令。", type: "code", language: "markdown", dependsOn: ["theme", "step1"] },
   { id: 10, name: "社群推播發控中心", icon: Facebook, category: 'Distribution', desc: "一鍵生成動態視覺提示詞、圖卡排版字卡與社群正文", type: "social", language: "markdown", dependsOn: ["theme", "step1"] }
-];
+],
+  beauty: [
+    { id: 1, name: '基礎背景科學查核', icon: Database, category: 'Research', desc: '針對保養成分或美妝趨勢進行定義釐清與科學/歷史文獻彙整', type: "text", dependsOn: ["theme"] },
+    { id: 2, name: '長影音腳本撰寫', icon: FileText, category: 'Content', desc: '根據基礎背景，產出 5-10 分鐘的 YouTube 長影片文案。', type: "text", dependsOn: ["theme", "step1"] },
+    { id: 3, name: '長影音 SEO 優化', icon: Search, category: 'Optimization', desc: '生成標題、標籤與說明欄內容。', type: "text", dependsOn: ["theme", "step2"] },
+    { id: 4, name: '短影音腳本撰寫', icon: Video, category: 'Content', desc: '產出 60 秒內的精簡爆款短影片文案。', type: "text", dependsOn: ["theme", "step1"] },
+    { id: 5, name: '短影音 SEO 優化', icon: Search, category: 'Optimization', desc: '生成短影片標題與標籤。', type: "text", dependsOn: ["theme", "step4"] },
+    { id: 6, name: '長影音縮圖設計', icon: ImageIcon, category: 'Visuals', desc: '生成 3 組 16:9 YouTube 縮圖文案與 AI 繪圖指令。', type: "code", language: "markdown", dependsOn: ["theme", "step3"] },
+    { id: 7, name: '短影音縮圖設計', icon: ImageIcon, category: 'Visuals', desc: '生成 3 組 9:16 短影音縮圖文案與 AI 繪圖指令。', type: "code", language: "markdown", dependsOn: ["theme", "step5"] },
+    { id: 8, name: '品牌高奢圖', icon: ImageIcon, category: 'Visuals', desc: '生成 3 組 16:9 高奢圖指令與搭配核心文案。', type: "code", language: "markdown", dependsOn: ["theme"] },
+    { id: 9, name: 'Suno AI 配樂設計', icon: Music, category: 'Audio', desc: '生成 3 組符合主題氛圍的音樂生成指令。', type: "code", language: "markdown", dependsOn: ["theme", "step1"] },
+    { id: 10, name: '社群推播發控中心', icon: Facebook, category: 'Distribution', desc: '一鍵生成動態視覺提示詞、圖卡排版字卡與社群正文', type: "social", language: "markdown", dependsOn: ["theme", "step1"] }
+  ]
+};
 
 const getInitialStepContent = (stepId, themeText, previousContents = {}) => {
   const step = STEPS.find(s => s.id === stepId);
@@ -192,8 +206,9 @@ export default function App() {
    const [theme, setTheme] = useState('');
    const [completedSteps, setCompletedSteps] = useState([1]); 
      const [visualStep, setVisualStep] = useState(6);
-  const [audienceTheme, setAudienceTheme] = useState('creator');
+  const [audienceTheme, setAudienceTheme] = useState('CultureTech');
   const curTheme = AUDIENCE_THEMES[audienceTheme];
+  const STEPS = THEME_STEPS[audienceTheme] || THEME_STEPS.CultureTech;
   const [stepContents, setStepContents] = useState({
     1: getInitialStepContent(1, ""), 2: getInitialStepContent(2, ""), 3: getInitialStepContent(3, ""),
     4: getInitialStepContent(4, ""), 5: getInitialStepContent(5, ""), 6: getInitialStepContent(6, ""),
@@ -1532,7 +1547,7 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                       {[
                         { title: 'SaaS Dreamscape - Vol.3', style: 'Synthwave', dur: '02:00' },
                         { title: 'Neon Coding Vibes', style: 'Lofi Cyberpunk', dur: '01:45' },
-                        { title: 'The Solopreneur Spirit', style: 'Acoustic Bright', dur: '02:30' }
+                        { title: 'The travelpreneur Spirit', style: 'Acoustic Bright', dur: '02:30' }
                       ].map((track) => (
                         <div key={track.title} className="flex items-center justify-between p-3 rounded-xl bg-slate-900/30 border border-slate-900/60 hover:border-purple-500/30 transition-all">
                           <div className="flex items-center gap-3">

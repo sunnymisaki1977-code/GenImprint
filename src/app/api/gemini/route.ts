@@ -1,18 +1,20 @@
-import { WORKFLOW_STEPS } from "@/utils/promptConfigs";
+import { getWorkflowSteps } from "@/utils/promptConfigs";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { stepId, context } = await req.json();
+    const { stepId, context, audienceTheme } = await req.json();
 
     if (!stepId) {
       return NextResponse.json({ error: "Missing stepId" }, { status: 400 });
     }
 
+    const WORKFLOW_STEPS = getWorkflowSteps(audienceTheme || 'CultureTech');
     const step = WORKFLOW_STEPS.find(s => s.id === stepId);
     if (!step) {
       return NextResponse.json({ error: "Invalid stepId" }, { status: 400 });
     }
+
 
     // 將 context 的內容組合成大師級 Prompt
     let masterPrompt = `你現在是頂尖的全域企劃 AI 助理。請針對主題「${context?.theme || '未命名主題'}」產出指定步驟的內容。\n`;

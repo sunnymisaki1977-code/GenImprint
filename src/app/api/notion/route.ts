@@ -1,6 +1,6 @@
 import { Client } from "@notionhq/client";
 import { NextResponse } from "next/server";
-import { WORKFLOW_STEPS } from "@/utils/promptConfigs";
+import { getWorkflowSteps } from "@/utils/promptConfigs";
 
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
 const DATABASE_ID = process.env.NOTION_DATABASE_ID || "";
@@ -45,7 +45,7 @@ function createSafeParagraphBlocks(text: string): any[] {
 
 export async function POST(req: Request) {
   try {
-    const { theme, stepsData } = await req.json();
+    const { theme, stepsData, audienceTheme } = await req.json();
 
     if (!DATABASE_ID) {
       return NextResponse.json({ error: "Notion Database ID is missing" }, { status: 500 });
@@ -65,6 +65,7 @@ export async function POST(req: Request) {
     const children: any[] = [];
 
     // 2. Format each step's content into blocks
+    const WORKFLOW_STEPS = getWorkflowSteps(audienceTheme || 'CultureTech');
     for (const step of WORKFLOW_STEPS) {
       const content = stepsData[step.id];
       if (!content) continue;

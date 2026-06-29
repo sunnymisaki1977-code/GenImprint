@@ -8,7 +8,8 @@ export interface WorkflowStep {
   dependsOn: string[];
 }
 
-export const WORKFLOW_STEPS: WorkflowStep[] = [
+export const WORKFLOWS_REGISTRY: Record<string, WorkflowStep[]> = {
+  CultureTech: [
   {
     id: 1,
   title: "基礎背景事實查核",
@@ -300,6 +301,247 @@ AI Prompt (中文):[開始撰寫9:16 動態分割構圖提示詞]
 
 #世代銘印 #${ctx.theme} [請再補充 3-5 個相關的 Hashtags]
 `,  },
-];
+  ],
+  beauty: [
+  {
+    id: 1,
+    title: "基礎背景科學查核",
+    description: "針對保養成分或美妝趨勢進行定義釐清與科學/歷史文獻彙整",
+    type: "text",
+    dependsOn: ["theme"],
+    prompt: (ctx) => `你是一位嚴謹的皮膚科學專家與國際時尚美妝趨勢主編。請針對主題「${ctx.theme}」進行一份約 1500 字的精確事實報告。
+請注意，網路上常有誇大的美妝謠言與行銷話術，請務必基於皮膚科學機轉、成分實證或時尚發展史撰寫，嚴禁任何 AI 腦補。
+撰寫時請務必嚴格遵循以下「詳細架構與撰寫指南」進行結構化輸出：
+
+## 🗂️ 詳細架構與撰寫指南
+
+### 一、 導言：現代人的肌膚痛點與流行風潮
+    破題引言：用一句話點出該主題解決了什麼現代人的容貌焦慮或引領了什麼新風尚（例如：「在換季時節，總有一款成分成為敏弱肌的救星，那就是...」）。
+    現代市場影響力：簡述此成分或風格在目前的普及程度與市場規模。
+
+### 二、 核心定義與分類系統
+    正式學名與常見俗稱：
+      官方/科學名稱：[例如：菸鹼醯胺、生育酚、A醇]
+      民間親切俗稱：[例如：維他命B3、抗老黃金、早C晚A]
+    機制定位與保養階級：屬於哪一類保養體系？在皮膚生理學中作用於哪一個層次？（例如：角質代謝、真皮層膠原協同）。
+
+### 三、 成分源流與研發傳奇（它從哪裡來？）
+> 💡 撰寫提示： 若該主題為「美妝風格」（如：Clean Girl），此段可調整為「風格起源、流行文化與美學源流」。
+
+    發現背景與契機：誕生於哪個年代、實驗室或歷史背景？最初是如何被發現有美妝/保養功效的？
+    研發痛點與技術突破：該成分有哪些不穩定性（如易氧化、具刺激性）？科學家後來用什麼技術（如包裹技術、微脂囊）克服？
+
+### 四、 核心功效與經典案例（它能做到什麼？）
+    核心實證功效（精選 1-2 則）：挑選最具科學實證的功效（如：抑制酪胺酸酶活性、促進細胞更新）。
+    視覺前後對比描述：臨床或實驗上，正確使用後會帶來什麼樣的膚質或妝效轉變？
+
+### 五、 質地特徵與包裝美學（它長什麼樣子？）
+    質地與觸感解析：外觀顏色、流動性、吸收速度與膚感（如：微乳化質地、清爽啞光、絲絨霧面、清透水光）。
+    包裝與活性保護：為了維持活性，通常需要什麼樣的包裝設計？（如：避光棕色瓶、真空壓泵、雙艙設計）。
+
+### 六、 適用膚質與精準搭配（誰最適合它？）
+    主要對症痛點：現代人遇到哪些肌膚問題（如：暗沉、初老、敏感、毛孔粗大）會特別需要它？
+    特定避雷與蜜糖群體：哪些膚質是天生蜜糖？哪些膚質需要建立耐受，或不可與什麼成分（如：高濃度酸類）疊加混搭？
+
+### 七、 現代日常保養/彩妝儀式
+    最佳使用時機與手法：應該在早晨還是夜晚使用？搭配什麼樣的按摩手法或疊擦順序能發揮最大功效？
+    經典代表產品：現今市場上以此為核心成分的指標性專櫃或平價產品。
+
+### 八、 專櫃品牌行銷話術 vs. 皮膚科正史對比
+    破解常見的「神話級」行銷話術，從科學角度告訴讀者哪些是必須的，哪些只是商家的概念炒作，建立專業公信力！
+
+### 九、 結語：悅己美學的現代啟示
+    核心價值的現代轉化：將複雜的保養/美妝昇華為一種「自我療癒與生活儀式感」，給予讀者日常護理的信心。
+    美學傳承與反思：總結它如何從實驗室數據或小眾趨勢，走入現代人的化妝台，成為跨越世代的美麗寄託。
+
+現在，請以「${ctx.theme}」為主題，開始撰寫這份嚴謹的科學報告。`,
+  },
+  {
+    id: 2,
+    title: "長影音腳本撰寫",
+    description: "根據基礎背景，產出 5-10 分鐘的 YouTube 長影片文案。",
+    type: "text",
+    dependsOn: ["theme", "step1"],
+    prompt: (ctx) => `請根據以下【經過專家查核的基礎科學資料】，為「${ctx.theme}」撰寫一份 5-10 分鐘的 YouTube 長影片腳本。
+
+【⚠️ 絕對真實性指令】：
+你在本腳本中提及的所有成分、機轉、專有名詞與護膚步驟，必須 100% 遵守下方提供的背景資料，不可修改名詞定義與功效宣稱。
+
+背景資料：
+${ctx.step1}
+
+腳本需求：包含引人入勝的痛點開場、深度成分與誤區解析、以及總結與互動引導。`,
+  },
+  {
+    id: 3,
+    title: "長影音 SEO 優化",
+    description: "生成標題、標籤與說明欄內容。",
+    type: "text",
+    dependsOn: ["theme", "step2"],
+    prompt: (ctx) => `請根據以下長影音腳本，為主題「${ctx.theme}」生成 SEO 優化內容。
+腳本內容：
+${ctx.step2}
+
+請提供：5 個 Hook 標題（需帶有痛點解決或趨勢感）、10 個熱門美妝保養 Hasthtags、以及 150 字影片說明、時間軸建議。`,
+  },
+  {
+    id: 4,
+    title: "短影音腳本撰寫",
+    description: "產出 60 秒內的精簡爆款短影片文案。",
+    type: "text",
+    dependsOn: ["theme", "step1"],
+    prompt: (ctx) => `請根據以下背景資料，為「${ctx.theme}」撰寫一份 60 秒內的 YouTube Shorts/TikTok 短影片腳本。
+背景資料：
+${ctx.step1}
+
+需求：節奏明快，前 3 秒必須有鉤子 (Hook，如「你以為的保養其實在毀容？」)，內容精簡有力，直擊痛點與解法。`,
+  },
+  {
+    id: 5,
+    title: "短影音 SEO 優化",
+    description: "生成短影片標題與標籤。",
+    type: "text",
+    dependsOn: ["theme", "step4"],
+    prompt: (ctx) => `請根據以下短影音腳本，產出適合的 SEO 內容。
+腳本內容：
+${ctx.step4}
+
+請提供：3 個衝擊力強、適合短影音演算法的標題。`,
+  },
+  {
+    id: 6,
+    title: "長影音縮圖設計",
+    description: "生成 3 組 16:9 YouTube 縮圖文案與 AI 繪圖指令。",
+    type: "code",
+    language: "markdown",
+    dependsOn: ["theme", "step3"],
+    prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組長影音 YouTube 縮圖設計 (16:9)。
+參考背景：${ctx.step3}
+
+【格式絕對鎖定指令】：
+你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
+請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
+AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed。結尾必須包含：--ar 16:9
+
+請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
+
+### 第一組：[請填入縮圖名稱]
+主標：[請填入10字以內主標內容]
+副標：[請填入8字以內副標內容]
+中文：[請填入中文 Prompt，具體描述產品外觀、質地微距或膚質光澤]`,
+  },
+  {
+    id: 7,
+    title: "短影音縮圖設計",
+    description: "生成 3 組 9:16 短影音縮圖文案與 AI 繪圖指令。",
+    type: "code",
+    language: "markdown",
+    dependsOn: ["theme", "step5"],
+    prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組短影音 YouTube 縮圖設計 (9:16)。
+參考背景：${ctx.step5}
+
+【格式絕對鎖定指令】：
+你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
+請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
+AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed。結尾必須包含：--ar 9:16
+
+請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
+
+### 第一組：[請填入短影音縮圖名稱]
+高點擊文案：[請填入10字以內主標內容]
+中文：[請填入中文 Prompt，具體描述產品外觀、質地微距或膚質光澤]`,
+  },
+  {
+    id: 8,
+    title: "品牌高奢圖",
+    description: "生成 3 組 16:9 高奢圖指令與搭配核心文案。",
+    type: "code",
+    language: "markdown",
+    dependsOn: ["theme"],
+    prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組 16:9 品牌高奢圖。
+視覺設計必須包含風格標籤 (high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed)，充滿極簡美學與高級保養質地（如水波紋、絲絨、精華滴落）的氛圍。
+
+【格式絕對鎖定指令】：
+請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
+AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed。 結尾必須包含：--ar 16:9
+
+請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
+
+### 第一組：[請填入高奢圖名稱]
+核心文案：[請填入八字以內的頂級美妝文案]
+中文：[請填入中文畫面描述，強調微距質地與光影]`,
+  },
+  {
+    id: 9,
+    title: "Suno AI 配樂設計",
+    description: "生成 3 組符合主題氛圍的音樂生成指令。",
+    type: "code",
+    language: "markdown",
+    dependsOn: ["theme", "step1"],
+    prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組 Suno AI 音樂生成 Prompt。
+場景設計分別為：1. 秀場感（高級感與力量感開場）、2. 療癒感（沉浸式保養/日常放鬆）、3. 輕快感（美妝教學/短影片節奏）。
+
+【格式絕對鎖定指令】：
+你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
+請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
+Suno AI 中文 Prompt 必須包含 Music Style、Instruments、Tempo。
+
+請直接輸出以下格式，依照三種場景順序生成：
+
+### 第一組：秀場感
+適用場景：[如：高奢穿搭/彩妝氣勢開場]
+Suno AI Prompt：[請填入包含參數的中文 Prompt 內容，例如：Deep House, heavy bass, confident, 120 BPM]
+
+### 第二組：療癒感
+適用場景：[如：沉浸式夜間護膚、ASMR]
+Suno AI Prompt：[請填入包含參數的中文 Prompt 內容，例如：Ambient, soft electric piano, relaxing, 80 BPM]
+
+### 第三組：輕快感
+適用場景：[如：快速出門妝容、OOTD 分享]
+Suno AI Prompt：[請填入包含參數的中文 Prompt 內容，例如：Upbeat Indie Pop, bright synth, energetic, 115 BPM]`,
+  },
+  {
+    id: 10,
+    title: "社群推播發控中心",
+    description: "一鍵生成動態視覺提示詞、圖卡排版字卡與社群正文",
+    type: "social",
+    language: "markdown",
+    dependsOn: ["theme", "step1"],
+    prompt: (ctx) => `你現在是頂級時尚雜誌視覺總監與高轉化美妝社群文案主編。
+你的任務是根據下方的【基礎背景科學查核】，為主題「${ctx.theme}」打造一組「高奢雜誌風」社群圖文懶人包。
+
+【⚠️ 絕對真實性指令】：
+所有萃取的資訊，必須完全基於下方科學資料，禁止腦補。
+
+【基礎背景科學查核】：
+${ctx.step1}
+
+
+---
+### 任務：撰寫社群發布正文
+使用精緻、推心置腹且具專業公信力的語氣。將科學資料轉化為 3~5 點易讀的亮點或誤區解析，並以痛點提問開場，以產品導流收尾。
+
+---
+
+### 📱 社群發布正文
+[請填入帶有精緻 Emoji 的痛點 Hook 開場白，例如：妳以為的保養，其實是在虐肌？]
+
+[請條列 3-5 點核心亮點解析，每點包含一個精緻小標題與兩句科學解說，必須基於資料]
+
+[互動提問：邀請粉絲留言分享自己的膚質或使用經驗]
+精準護膚、拒絕盲從，點擊看更多皮膚科醫師推薦的無雷清單 ➔ [此處自動帶入品牌導購連結 / 讀者專屬優惠碼]
+
+#精準護膚 #${ctx.theme} [請再補充 3-5 個美妝保養熱門 Hashtags]
+`
+  }
+]
+};
+
+export const getWorkflowSteps = (themeId: string): WorkflowStep[] => {
+  return WORKFLOWS_REGISTRY[themeId] || WORKFLOWS_REGISTRY['CultureTech'];
+};
+
+export const WORKFLOW_STEPS: WorkflowStep[] = WORKFLOWS_REGISTRY['CultureTech'];
+
 
 

@@ -1,13 +1,14 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { WORKFLOW_STEPS } from "@/utils/promptConfigs";
+import { getWorkflowSteps } from "@/utils/promptConfigs";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 export async function POST(req: Request) {
   try {
-    const { stepId, context } = await req.json();
+    const { stepId, context, audienceTheme } = await req.json();
 
+    const WORKFLOW_STEPS = getWorkflowSteps(audienceTheme || 'CultureTech');
     const step = WORKFLOW_STEPS.find((s) => s.id === stepId);
     if (!step) {
       return NextResponse.json({ error: "Invalid step ID" }, { status: 400 });

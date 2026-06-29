@@ -1,11 +1,11 @@
-import { WORKFLOW_STEPS } from "@/utils/promptConfigs";
+import { getWorkflowSteps } from "@/utils/promptConfigs";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { theme, customDocText, startFromStep = 1, endStep = 10, existingData = {} } = body;
-
+    const { theme, customDocText, startFromStep = 1, endStep = 10, existingData = {}, audienceTheme } = body;
+    
     if (!theme) {
       return NextResponse.json({ error: "缺少主題 (theme)" }, { status: 400 });
     }
@@ -13,6 +13,7 @@ export async function POST(req: Request) {
     const verifiedContext = customDocText || "";
 
     // 1. 篩選出本次請求需要生成的步驟
+    const WORKFLOW_STEPS = getWorkflowSteps(audienceTheme || 'CultureTech');
     const targetSteps = WORKFLOW_STEPS.filter(step => step.id >= startFromStep && step.id <= endStep);
     if (targetSteps.length === 0) {
       return NextResponse.json({ error: "無效的步驟範圍" }, { status: 400 });
