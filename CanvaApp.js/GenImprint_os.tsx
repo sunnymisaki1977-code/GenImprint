@@ -215,8 +215,28 @@ const getInitialStepContent = (stepId, themeText, previousContents = {}) => {
 // 3. React 元件主體與狀態
 // ============================================================================
 export default function App() {
+  const [audienceThemes, setAudienceThemes] = useState({});
+  const [themeSteps, setThemeSteps] = useState({});
+  const [isConfigLoaded, setIsConfigLoaded] = useState(false);
+  const [parsedVisualGroups, setParsedVisualGroups] = useState([]);
+  const [isParsingVisuals, setIsParsingVisuals] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => {
+        setAudienceThemes(data.AUDIENCE_THEMES);
+        setThemeSteps(data.THEME_STEPS);
+        setIsConfigLoaded(true);
+      })
+      .catch(err => {
+        console.error('Failed to load config:', err);
+      });
+  }, []);
+
   // --- 狀態管理保持不變 ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false); // 新增：控制是否顯示密碼輸入框
   const [passcode, setPasscode] = useState('');
   const [authError, setAuthError] = useState('');
   
@@ -234,6 +254,8 @@ export default function App() {
    const [completedSteps, setCompletedSteps] = useState([1]); 
      const [visualStep, setVisualStep] = useState(6);
   const [audienceTheme, setAudienceTheme] = useState('CultureTech');
+  const iconMap: any = { Database, FileText, Search, Video, ImageIcon, Music, Facebook };
+
   const curTheme = AUDIENCE_THEMES[audienceTheme];
   const STEPS = THEME_STEPS[audienceTheme] || THEME_STEPS.CultureTech;
   const [stepContents, setStepContents] = useState({
@@ -290,132 +312,28 @@ export default function App() {
   const [generatingGroups, setGeneratingGroups] = useState({});
   const [imageEngine, setImageEngine] = useState('imagen4'); // 'imagen4' | 'flash'
 
-  const visualGroups = useMemo(() => {
-    const text = stepContents[visualStep];
-    if (!text) return [];
+  useEffect(() => {
+    const content = stepContents[visualStep];
+    if (!content || !isConfigLoaded) return;
     
-    const lines = text.split('\n');
-    const groups = [];
-    let currentGroup = null;
-    let cardCount = 1;
+    setIsParsingVisuals(true);
+    fetch('/api/parse-visuals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, visualStep })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setParsedVisualGroups(data.parsedGroups || []);
+        setIsParsingVisuals(false);
+      })
+      .catch(err => {
+        console.error('Parse visuals error:', err);
+        setIsParsingVisuals(false);
+      });
+  }, [stepContents, visualStep, isConfigLoaded]);
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        
-        let titleMatch = null;
-        if (line.match(/###\s*(第[一二三四五六七八九十\d]+組.*)/)) {
-            titleMatch = line.match(/###\s*(第[一二三四五六七八九十\d]+組.*)/)[1].trim();
-        } else if (line.match(/\d+\.\s*(畫格\s*\d+.*)/)) {
-            titleMatch = line.match(/\d+\.\s*(畫格\s*\d+.*)/)[1].trim();
-        } else if (line.match(/(16:9\s*動態分割構圖.*)/)) {
-            titleMatch = line.match(/(16:9\s*動態分割構圖.*)/)[1].trim();
-        } else if (line.match(/(9:16\s*動態分割構圖.*)/)) {
-            titleMatch = line.match(/(9:16\s*動態分割構圖.*)/)[1].trim();
-        } else if (line.match(/\d+\.\s*###\s*圖卡標籤/)) {
-            titleMatch = `圖卡 ${cardCount}`;
-            cardCount++;
-        }
-        
-        if (titleMatch) {
-            if (currentGroup) {
-                groups.push(currentGroup);
-            }
-            currentGroup = { title: titleMatch, content: "" };
-        } else {
-            if (currentGroup) {
-                currentGroup.content += line + "\n";
-            }
-        }
-    }
-    if (currentGroup) {
-        groups.push(currentGroup);
-    }
-    
-    const parsedGroups = groups.map((g, index) => {
-        const content = g.content;
-        
-        let promptText = "無法自動擷取提示詞，請手動確認";
-        
-        // 1. 嘗試組合: 核心文案 + 促銷副標 + 中文 (使用者要求的進階整合)
-        let promptTextParts = [];
-        const coreCopyMatch = content.match(/(?:核心文案|主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
-        if (coreCopyMatch && coreCopyMatch[1].trim()) promptTextParts.push(`核心文案：${coreCopyMatch[1].trim()}`);
-        
-        const subPromoMatch = content.match(/(?:促銷副標(?:（.*?）)?|副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
-        if (subPromoMatch && subPromoMatch[1].trim()) promptTextParts.push(`促銷副標：${subPromoMatch[1].trim()}`);
-        
-        const zhPromptMatch = content.match(/(?:中文|中文\s*Prompt|中文Prompt)\s*[：:]\s*([\s\S]*?)(?=\n(?:主標|副標|核心文案|促銷副標|詩詞|###|$)|$)/);
-        if (zhPromptMatch && zhPromptMatch[1].trim()) promptTextParts.push(`畫面細節與標籤：${zhPromptMatch[1].trim()}`);
-
-        if (promptTextParts.length > 0) {
-            promptText = promptTextParts.join("\\n");
-        } else {
-            // 2. Fallback: 尋找舊的標籤格式
-            const aiPromptMatch = content.match(/AI\s*Prompt\s*(?:\(中文\)|（中文）)?[：:\s]*(?:必須包含[：:\s]*)?([\s\S]*?)(?=\n(?:主標|副標|詩詞|###|$)|$)/i);
-            if (aiPromptMatch && aiPromptMatch[1].trim().length > 0) {
-                promptText = aiPromptMatch[1].trim();
-            } else {
-                const fallbackMatch = content.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt)\s*[：:]\s*(.*?)(?=\n|$)/);
-                if (fallbackMatch && fallbackMatch[1].trim().length > 0) {
-                    promptText = fallbackMatch[1].trim();
-                }
-            }
-        }
-        
-        const mainTitleMatch = content.match(/(?:主標|高點擊文案|主標題|核心文案)\s*[：:]\s*(.*?)(?=\n|$)/);
-        const subTitleMatch = content.match(/(?:副標|副標題|促銷副標(?:（.*?）)?)\s*[：:]\s*(.*?)(?=\n|$)/);
-        const poetryMatch = content.match(/詩詞(?:（.*?）)?\s*[：:]\s*([\s\S]*?)(?=\n(?:中文|視覺|主標|副標|核心文案|促銷副標|高點擊文案|主標題|副標題|AI Prompt)\s*[：:]|$)/);
-        
-        return {
-            id: `group-${visualStep}-${index}`,
-            title: g.title,
-            prompt: promptText,
-            mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
-            subTitle: subTitleMatch ? subTitleMatch[1].trim() : "",
-            poetry: poetryMatch ? poetryMatch[1].trim() : ""
-        };
-    });
-    
-    if (parsedGroups.length > 0) {
-        return parsedGroups;
-    }
-    
-    // Fallback if no groups matched but there is text
-    const fullText = text.trim();
-    if (fullText.length > 10) {
-       let fallbackTitle = "主要視覺";
-       if (fullText.includes("16:9 動態分割構圖提示詞")) fallbackTitle = "16:9 動態分割構圖";
-       else if (fullText.includes("9:16 動態分割構圖提示詞")) fallbackTitle = "9:16 動態分割構圖";
-       
-       let promptText = "無法自動擷取提示詞，請手動確認";
-       const aiPromptMatch = fullText.match(/AI\s*Prompt\s*(?:\(中文\)|（中文）)?[：:\s]*(?:必須包含[：:\s]*)?([\s\S]*?)(?=\n(?:主標|副標|詩詞|###|$)|$)/i);
-       if (aiPromptMatch && aiPromptMatch[1].trim().length > 0) {
-           promptText = aiPromptMatch[1].trim();
-       } else {
-           const fallbackMatch = fullText.match(/(?:中文|視覺描述|中文\s*Prompt|視覺Prompt)\s*[：:]\s*(.*?)(?=\n|$)/);
-           if (fallbackMatch && fallbackMatch[1].trim().length > 0) {
-               promptText = fallbackMatch[1].trim();
-           } else {
-               promptText = fullText.substring(0, 150);
-           }
-       }
-       
-       const mainTitleMatch = fullText.match(/(?:主標|高點擊文案|主標題)\s*[：:]\s*(.*?)(?=\n|$)/);
-       const subTitleMatch = fullText.match(/(?:副標|副標題)\s*[：:]\s*(.*?)(?=\n|$)/);
-       const poetryMatch = fullText.match(/詩詞(?:（.*?）)?\s*[：:]\s*([\s\S]*?)(?=\n(?:中文|視覺|主標|副標|高點擊文案|主標題|副標題|AI Prompt)\s*[：:]|$)/);
-       
-       return [{
-         id: `group-${visualStep}-fallback`,
-         title: fallbackTitle,
-         prompt: promptText,
-         mainTitle: mainTitleMatch ? mainTitleMatch[1].trim() : "",
-         subTitle: subTitleMatch ? subTitleMatch[1].trim() : "",
-         poetry: poetryMatch ? poetryMatch[1].trim() : ""
-       }];
-    }
-    
-    return [];
-  }, [stepContents, visualStep]);
+  const visualGroups = parsedVisualGroups;
 
   const applyTextOverlayToImageBase64 = (base64Image, mainTitle, subTitle, poetry) => {
     return new Promise((resolve) => {
@@ -675,7 +593,7 @@ export default function App() {
 
   const handleThemeChange = (newThemeId) => {
     setAudienceTheme(newThemeId);
-    const selectedTheme = AUDIENCE_THEMES[newThemeId];
+    const selectedTheme = audienceThemes[newThemeId];
     addLog(selectedTheme.themeLogMessage, 'info');  
   };
 
@@ -944,6 +862,7 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
     const code = passcode.trim().toUpperCase();
     if (ACCESS_CODES[code]) {
       setIsAuthenticated(true);
+      setShowLoginPrompt(false);
       setAudienceTheme(ACCESS_CODES[code]); // 根據密碼自動切換對應的受眾主題
       setAuthError('');
       setLogs([{ time: new Date().toLocaleTimeString('en-US', { hour12: false }), text: `[System] 授權成功。載入 ${ACCESS_CODES[code]} 工作區。`, type: "success" }]);
@@ -952,50 +871,29 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#030712] relative overflow-hidden font-sans selection:bg-indigo-500/30">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/20 rounded-full blur-[120px] pointer-events-none" />
-        
-        <div className="relative z-10 w-full max-w-sm p-8 bg-[#0f172a]/80 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl flex flex-col items-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mb-6">
-            <Lock className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-2xl font-black text-white tracking-wider mb-2">GenImprint Pro</h2>
-          <p className="text-xs text-slate-400 mb-8 text-center">請輸入您的專屬受眾授權碼以解鎖系統</p>
-          
-          <form onSubmit={handleLogin} className="w-full space-y-4">
-            <div>
-              <input 
-                type="password"
-                value={passcode}
-                onChange={(e) => { setPasscode(e.target.value); setAuthError(''); }}
-                placeholder="輸入授權碼"
-                className="w-full bg-[#070b16] border border-slate-700 rounded-xl px-4 py-3 text-sm text-center text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all tracking-widest"
-              />
-            </div>
-            {authError && <p className="text-red-400 text-[10px] text-center font-bold">{authError}</p>}
-            <button 
-              type="submit"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm transition-all shadow-lg active:scale-95"
-            >
-              登入工作區
-            </button>
-          </form>
+  // 新增：全局攔截使用者的任何操作（點擊、鍵盤），在觸發任何 UI 前攔截並顯示密碼框
+  useEffect(() => {
+    const handleInteraction = (e) => {
+      if (!isAuthenticated && !showLoginPrompt) {
+        setShowLoginPrompt(true);
+        e.stopPropagation(); // 阻止事件往下傳遞給底層的按鈕
+        e.preventDefault();
+      }
+    };
 
-          {/* 開發測試用小抄 (上線給客戶時可將這塊 div 刪除) */}
-          <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-2 text-[9px] text-slate-600 font-mono">
-            <span>TECH2026 (科技)</span>
-            <span>GLAM2026 (美妝)</span>
-            <span>INDIE2026 (旅遊)</span>
-            <span>RUBY2026 (美食)</span>
-            <span>SKY2026 (教育)</span>
-            <span>MASTER (管理)</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    if (!isAuthenticated && !showLoginPrompt) {
+      // 使用 capture 階段攔截事件，確保能第一時間抓住使用者的操作
+      window.addEventListener('click', handleInteraction, { capture: true });
+      window.addEventListener('mousedown', handleInteraction, { capture: true });
+      window.addEventListener('keydown', handleInteraction, { capture: true });
+    }
+
+    return () => {
+      window.removeEventListener('click', handleInteraction, { capture: true });
+      window.removeEventListener('mousedown', handleInteraction, { capture: true });
+      window.removeEventListener('keydown', handleInteraction, { capture: true });
+    };
+  }, [isAuthenticated, showLoginPrompt]);
 
   return (
     <div className="flex h-screen bg-[#030712] text-slate-100 font-sans overflow-hidden selection:bg-indigo-500/30">
@@ -1221,7 +1119,7 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                   {/* Dynamic Theme Select Buttons (Horizontal Row as requested) */}
                   <div className="space-y-3">
                     <div className="flex justify-center gap-1.5 flex-wrap">
-                      {Object.values(AUDIENCE_THEMES).map((themeObj) => {
+                      {Object.values(audienceThemes).map((themeObj) => {
                         const isSel = audienceTheme === themeObj.id;
                         return (
                           <button
@@ -1967,6 +1865,53 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
         </div>
 
       </aside>
+
+      {/* --- Global Auth Overlay (透明防護罩與密碼鎖屏) --- */}
+      {(!isAuthenticated && showLoginPrompt) && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#030712]/80 backdrop-blur-md transition-all duration-500 animate-in fade-in">
+          <div 
+            className="relative z-10 w-full max-w-sm p-8 bg-[#0f172a]/90 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl flex flex-col items-center animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()} // 點擊密碼框內部不會冒泡
+          >
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/20 rounded-full blur-[120px] pointer-events-none" />
+            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mb-6 relative z-10">
+              <Lock className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-black text-white tracking-wider mb-2 relative z-10">GenImprint Pro</h2>
+            <p className="text-xs text-slate-400 mb-8 text-center relative z-10">請輸入您的專屬受眾授權碼以解鎖系統</p>
+            
+            <form onSubmit={handleLogin} className="w-full space-y-4 relative z-10">
+              <div>
+                <input 
+                  type="password"
+                  value={passcode}
+                  onChange={(e) => { setPasscode(e.target.value); setAuthError(''); }}
+                  placeholder="輸入授權碼"
+                  className="w-full bg-[#070b16] border border-slate-700 rounded-xl px-4 py-3 text-sm text-center text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all tracking-widest"
+                  autoFocus
+                />
+              </div>
+              {authError && <p className="text-red-400 text-[10px] text-center font-bold">{authError}</p>}
+              <button 
+                type="submit"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm transition-all shadow-lg active:scale-95"
+              >
+                解鎖並登入工作區
+              </button>
+            </form>
+
+            {/* 開發測試用小抄 (上線給客戶時可將這塊 div 刪除) */}
+            <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-2 text-[9px] text-slate-600 font-mono relative z-10">
+              <span>TECH2026 (科技)</span>
+              <span>GLAM2026 (美妝)</span>
+              <span>INDIE2026 (旅遊)</span>
+              <span>RUBY2026 (美食)</span>
+              <span>SKY2026 (教育)</span>
+              <span>MASTER (管理)</span>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
