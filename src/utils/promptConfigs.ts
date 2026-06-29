@@ -461,8 +461,6 @@ AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury a
     prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組 9:16 品牌高奢圖。
 視覺設計必須包含風格標籤 (high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed)，充滿極簡美學與高級保養質地的氛圍。
 
-high-end beauty editorial, commercial poster design, minimalist luxury aesthetic, crisp studio lighting, macro product texture, blank frosted glass bottle mockup, no text, no logo, no branding, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed。
-
 【格式絕對鎖定指令】：
 請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
 AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed。 結尾必須包含：--ar 9:16
