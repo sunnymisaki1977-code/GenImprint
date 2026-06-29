@@ -454,21 +454,24 @@ AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury a
   {
     id: 8,
     title: "品牌高奢圖",
-    description: "生成 3 組 16:9 高奢圖指令與搭配核心文案。",
+    description: "生成 3 組 9:16 高奢圖指令與搭配核心文案。",
     type: "code",
     language: "markdown",
     dependsOn: ["theme"],
-    prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組 16:9 品牌高奢圖。
-視覺設計必須包含風格標籤 (high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed)，充滿極簡美學與高級保養質地（如水波紋、絲絨、精華滴落）的氛圍。
+    prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組 9:16 品牌高奢圖。
+視覺設計必須包含風格標籤 (high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed)，充滿極簡美學與高級保養質地的氛圍。
+
+high-end beauty editorial, commercial poster design, minimalist luxury aesthetic, crisp studio lighting, macro product texture, blank frosted glass bottle mockup, no text, no logo, no branding, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed。
 
 【格式絕對鎖定指令】：
 請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
-AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed。 結尾必須包含：--ar 16:9
+AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed。 結尾必須包含：--ar 9:16
 
 請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
 
 ### 第一組：[請填入高奢圖名稱]
 核心文案：[請填入八字以內的頂級美妝文案]
+促銷副標（強調功效或賣點，12字以內）：[請填入副標，如：72小時長效深層保濕]
 中文：[請填入中文畫面描述，強調微距質地與光影]`,
   },
   {
