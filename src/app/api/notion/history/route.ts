@@ -30,13 +30,25 @@ export async function GET(req: Request) {
             currentStepId = parseInt(match[1]);
           }
         } else if (currentStepId > 0) {
-          if (block.type === "paragraph") {
-            const text = block.paragraph.rich_text.map((rt: any) => rt.plain_text).join("");
-            stepsData[currentStepId] = stepsData[currentStepId] ? stepsData[currentStepId] + "\n\n" + text : text;
-          } else if (block.type === "quote") {
-            const text = block.quote.rich_text.map((rt: any) => rt.plain_text).join("");
-            // quote blocks are chunked, we can join them without extra newlines if they are continuous
-            stepsData[currentStepId] = stepsData[currentStepId] ? stepsData[currentStepId] + text : text;
+          const typeData = block[block.type];
+          if (typeData && typeData.rich_text) {
+            const text = typeData.rich_text.map((rt: any) => rt.plain_text).join("");
+            
+            let prefix = "";
+            if (block.type === "bulleted_list_item") prefix = "- ";
+            else if (block.type === "numbered_list_item") prefix = "1. ";
+            else if (block.type === "heading_1") prefix = "# ";
+            else if (block.type === "heading_2") prefix = "## ";
+            else if (block.type === "heading_3") prefix = "### ";
+            
+            const contentToAdd = prefix + text;
+            
+            if (block.type === "quote") {
+              // quote blocks are chunked, we can join them without extra newlines if they are continuous
+              stepsData[currentStepId] = stepsData[currentStepId] ? stepsData[currentStepId] + contentToAdd : contentToAdd;
+            } else {
+              stepsData[currentStepId] = stepsData[currentStepId] ? stepsData[currentStepId] + "\n\n" + contentToAdd : contentToAdd;
+            }
           }
         }
       }
