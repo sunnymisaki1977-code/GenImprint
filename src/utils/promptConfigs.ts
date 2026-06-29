@@ -251,7 +251,7 @@ ${ctx.step1}
 
 ### 🎨 視覺 Prompt
   16:9 動態分割構圖提示詞：  
-以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】，以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張16:9【蒙太奇資訊圖表（Montage Infographic）】
+以「${ctx.theme}」為核心主角，必須包含風格：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed，以主標題，核心主角五個【蒙太奇資訊】【視覺描述】，運用【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張【蒙太奇資訊圖表（Montage Infographic）】--16:9。
   主標題：  [請填入主標題]
 1.   畫格 1：   [蒙太奇資訊名稱 1]
    視覺描述：  [請填入視覺描述]
@@ -265,13 +265,12 @@ ${ctx.step1}
    視覺描述：  [請填入視覺描述]
 
 
-【格式絕對鎖定指令】：
-AI Prompt (中文) 必須包含風格：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed，再以主標題，核心主角五個【蒙太奇資訊】【視覺描述】，運用【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張【蒙太奇資訊圖表（Montage Infographic）】--16:9。
 現在，請直接輸出以下格式：
 AI Prompt (中文):[開始撰寫16:9 動態分割構圖提示詞]
 
+
   9:16 動態分割構圖提示詞：  
-以「${ctx.theme}」為核心主角，從史料萃取五個【蒙太奇資訊】，以【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張9:16【蒙太奇資訊圖表（Montage Infographic）】。
+以「${ctx.theme}」為核心主角，必須包含風格：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed，以主標題，核心主角五個【蒙太奇資訊】【視覺描述】，運用【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張【蒙太奇資訊圖表（Montage Infographic）】--9:16。
 
   主標題：  [請填入主標題]
 1.   畫格 1：   [蒙太奇資訊名稱 1]
@@ -286,10 +285,9 @@ AI Prompt (中文):[開始撰寫16:9 動態分割構圖提示詞]
    視覺描述：  [請填入視覺描述中文 Prompt]
 
 
-【格式絕對鎖定指令】：
-AI Prompt (中文) 必須包含風格：colorful ink wash, vivid diffusion, golden particles, energy flow, eastern fantasy, gold flowing accents, rice paper texture, eastern mythology, spiritual energy, cinematic lighting, ultra detailed，再以主標題，核心主角五個【蒙太奇資訊】【視覺描述】，運用【動態分割構圖（Dynamic Segmented Layout）】以及【美式漫畫跨頁插圖（Comic Book Splash Page with Insets）】組合併接成一張【蒙太奇資訊圖表（Montage Infographic）】--9:16。
 現在，請直接輸出以下格式：
 AI Prompt (中文):[開始撰寫9:16 動態分割構圖提示詞]
+
 
 
 ### 📱 社群發布正文
