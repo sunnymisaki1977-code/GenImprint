@@ -7,7 +7,7 @@ import {
   Database, Video, Search, Music, Facebook, MousePointerClick,
   Sliders, Link, RefreshCw, Key, HelpCircle, HardDrive, 
   Eye, Check, ListTodo, Send, Volume2, Download, Zap, X,
-  Users, Palette, ShieldAlert, BookOpen, Sun, ChevronDown, Award
+  Users, Palette, ShieldAlert, BookOpen, Sun, ChevronDown, Award, Lock
 } from 'lucide-react';
 
 const AUDIENCE_THEMES = {
@@ -124,6 +124,18 @@ const AUDIENCE_THEMES = {
 };
 
 // ============================================================================
+// --- 授權金鑰對應表 (5 個受眾群 + 1 個管理員) ---
+// ============================================================================
+const ACCESS_CODES = {
+  'TECH2026': 'CultureTech',   // 科技文化創作者
+  'GLAM2026': 'beauty',        // 時尚美妝保養
+  'INDIE2026': 'travelpreneur',// 旅遊先行者
+  'RUBY2026': 'food',          // 美食生活創作者
+  'SKY2026': 'education',      // 親子教育工作者
+  'MASTER': 'CultureTech'      // 管理員 (可進入後再自由切換)
+};
+
+// ============================================================================
 // --- 結合 Vercel 邏輯與 Gemini Canva API 的全新生成函數 ---
 async function callVercelApi(stepId: any, context: any, audienceTheme: string) {
     // 步驟 1：向 Vercel 請求「該步驟專屬的 Prompt 字串」
@@ -204,6 +216,10 @@ const getInitialStepContent = (stepId, themeText, previousContents = {}) => {
 // ============================================================================
 export default function App() {
   // --- 狀態管理保持不變 ---
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passcode, setPasscode] = useState('');
+  const [authError, setAuthError] = useState('');
+  
   const [activeTab, setActiveTab] = useState('creation'); 
   const [viewState, setViewState] = useState('hub'); 
   const [mode, setMode] = useState('manual'); 
@@ -211,6 +227,10 @@ export default function App() {
   const [loadingVideoIdx, setLoadingVideoIndex] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
    const [theme, setTheme] = useState('');
+   
+   // --- 新增：自訂背景資料狀態 ---
+   const [customContext, setCustomContext] = useState('');
+
    const [completedSteps, setCompletedSteps] = useState([1]); 
      const [visualStep, setVisualStep] = useState(6);
   const [audienceTheme, setAudienceTheme] = useState('CultureTech');
@@ -649,11 +669,21 @@ export default function App() {
     setIsGenerating(true);
         setMode('auto');
     setViewState('workspace');
-    setCompletedSteps([]);
     
     let currentContextContents = {}; 
+    let startStep = 1;
 
-    for (let step = 1; step <= 10; step++) {
+    // 如果使用者有自訂背景資料，就把它當作 Step 1，然後從 Step 2 開始跑
+    if (customContext.trim()) {
+      currentContextContents[1] = customContext;
+      setStepContents(prev => ({ ...prev, 1: customContext }));
+      setCompletedSteps([1]);
+      startStep = 2;
+    } else {
+      setCompletedSteps([]);
+    }
+
+    for (let step = startStep; step <= 10; step++) {
       setActiveStep(step);
       addLog(`[Process] 正在向 Vercel 請求真實生成 Step ${step}: ${STEPS[step - 1].name}...`);
 
@@ -743,7 +773,7 @@ export default function App() {
       setSelectedArchive("");
     }
   };
-  
+
   const handleStartAuto = () => {
     const finalTheme = theme.trim() || '日本京阪神五日遊攻略';
     if (!theme.trim()) setTheme('日本京阪神五日遊攻略');
@@ -762,6 +792,31 @@ export default function App() {
   const handleEditorChange = (e) => {
     const text = e.target.innerText;
     setStepContents(prev => ({ ...prev, [activeStep]: text }));
+  };
+
+  // --- 新增：讀取本地文件內容 ---
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      setCustomContext(prev => prev + (prev ? '\n\n' : '') + text);
+      addLog(`[System] 已成功讀取文件：${file.name}`, 'success');
+    };
+    reader.readAsText(file);
+    e.target.value = null; // 重置 input 讓同一個檔案可以重複上傳
+  };
+
+  // --- 新增：直接寫入 Step 1 ---
+  const handleImportToStep1 = () => {
+    if (!customContext.trim()) {
+      addLog('[System] 沒有內容可匯入，請先貼上或上傳資料', 'warning');
+      return;
+    }
+    setStepContents(prev => ({ ...prev, 1: customContext }));
+    setCompletedSteps(prev => [...new Set([...prev, 1])]); // 標記 Step 1 為已完成
+    addLog('[System] 📝 參考資料已成功匯入 Step 1 畫布！', 'success');
   };
 
   // ============================================================================
@@ -865,6 +920,64 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
     if (aiStatus === 'flash') return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
     return 'text-red-400 bg-red-400/10 border-red-400/20';
   };
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const code = passcode.trim().toUpperCase();
+    if (ACCESS_CODES[code]) {
+      setIsAuthenticated(true);
+      setAudienceTheme(ACCESS_CODES[code]); // 根據密碼自動切換對應的受眾主題
+      setAuthError('');
+      setLogs([{ time: new Date().toLocaleTimeString('en-US', { hour12: false }), text: `[System] 授權成功。載入 ${ACCESS_CODES[code]} 工作區。`, type: "success" }]);
+    } else {
+      setAuthError('無效的授權碼，請重新輸入');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#030712] relative overflow-hidden font-sans selection:bg-indigo-500/30">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/20 rounded-full blur-[120px] pointer-events-none" />
+        
+        <div className="relative z-10 w-full max-w-sm p-8 bg-[#0f172a]/80 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl flex flex-col items-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mb-6">
+            <Lock className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-2xl font-black text-white tracking-wider mb-2">GenImprint Pro</h2>
+          <p className="text-xs text-slate-400 mb-8 text-center">請輸入您的專屬受眾授權碼以解鎖系統</p>
+          
+          <form onSubmit={handleLogin} className="w-full space-y-4">
+            <div>
+              <input 
+                type="password"
+                value={passcode}
+                onChange={(e) => { setPasscode(e.target.value); setAuthError(''); }}
+                placeholder="輸入授權碼"
+                className="w-full bg-[#070b16] border border-slate-700 rounded-xl px-4 py-3 text-sm text-center text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all tracking-widest"
+              />
+            </div>
+            {authError && <p className="text-red-400 text-[10px] text-center font-bold">{authError}</p>}
+            <button 
+              type="submit"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm transition-all shadow-lg active:scale-95"
+            >
+              登入工作區
+            </button>
+          </form>
+
+          {/* 開發測試用小抄 (上線給客戶時可將這塊 div 刪除) */}
+          <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-2 text-[9px] text-slate-600 font-mono">
+            <span>TECH2026 (科技)</span>
+            <span>GLAM2026 (美妝)</span>
+            <span>INDIE2026 (旅遊)</span>
+            <span>RUBY2026 (美食)</span>
+            <span>SKY2026 (教育)</span>
+            <span>MASTER (管理)</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-[#030712] text-slate-100 font-sans overflow-hidden selection:bg-indigo-500/30">
@@ -1120,6 +1233,33 @@ const startNotionExport = async (customContents = null, customTheme = null) => {
                         onChange={(e) => setTheme(e.target.value)}
                         className="w-full relative bg-[#070b16] border border-slate-900 rounded-2xl px-6 py-4 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/30 transition-all shadow-inner"
                       />
+                    </div>
+
+                    {/* --- 新增：自訂背景資料區 --- */}
+                    <div className="space-y-2 pt-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] text-slate-400 font-bold">自訂背景資料 / 參考文件 (選填)</label>
+                        <label className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800/50 hover:bg-slate-700 text-slate-300 text-[9px] cursor-pointer transition-colors border border-slate-700">
+                          <UploadCloud className="w-3 h-3" />
+                          <span>上傳 TXT/MD/CSV</span>
+                          <input type="file" accept=".txt,.md,.csv" className="hidden" onChange={handleFileUpload} />
+                        </label>
+                      </div>
+                      <textarea
+                        placeholder="可直接貼上參考文章、官方新聞稿，或上傳純文字文件檔。點擊下方按鈕可直接匯入至 Step 1 作為基準資料..."
+                        value={customContext}
+                        onChange={(e) => setCustomContext(e.target.value)}
+                        className="w-full bg-[#070b16] border border-slate-900 rounded-xl px-4 py-3 text-xs text-slate-300 focus:outline-none focus:border-indigo-500/30 h-28 resize-none shadow-inner custom-scrollbar"
+                      />
+                      <div className="flex justify-end">
+                        <button
+                          onClick={handleImportToStep1}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 text-[10px] font-bold transition-colors border border-indigo-500/20 active:scale-95"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>寫入 Step 1 畫布</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Big Action Buttons */}
