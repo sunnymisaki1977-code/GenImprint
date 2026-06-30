@@ -116,8 +116,8 @@ export default function App() {
   const [audienceTheme, setAudienceTheme] = useState('CultureTech');
   const iconMap: any = { Database, FileText, Search, Video, ImageIcon, Music, Facebook };
 
-  const curTheme = AUDIENCE_THEMES[audienceTheme];
-  const STEPS = THEME_STEPS[audienceTheme] || THEME_STEPS.CultureTech;
+  const curTheme = audienceThemes[audienceTheme] || {};
+  const STEPS = themeSteps[audienceTheme] || themeSteps.CultureTech || [];
   const [stepContents, setStepContents] = useState({
     1: getInitialStepContent(1, ""), 2: getInitialStepContent(2, ""), 3: getInitialStepContent(3, ""),
     4: getInitialStepContent(4, ""), 5: getInitialStepContent(5, ""), 6: getInitialStepContent(6, ""),
