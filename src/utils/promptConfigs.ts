@@ -536,6 +536,240 @@ ${ctx.step1}
 #精準護膚 #${ctx.theme} [請再補充 3-5 個美妝保養熱門 Hashtags]
 `
   }
+],
+  food: [
+  {
+    id: 1,
+    title: "基礎背景科學查核",
+    description: "針對食材成分或飲食趨勢進行定義釐清與食品科學/飲食史文獻彙整",
+    type: "text",
+    dependsOn: ["theme"],
+    prompt: (ctx) => `你是一位嚴謹的食品科學專家與頂級米其林美食評論家。請針對主題「${ctx.theme}」進行一份約 1500 字的精確事實報告。
+請注意，網路上常有誇大的飲食謠言與餐飲行銷話術，請務必基於食品科學機轉、營養實證或飲食文化發展史撰寫，嚴禁任何 AI 腦補。
+撰寫時請務必嚴格遵循以下「詳細架構與撰寫指南」進行結構化輸出：
+
+## 🗂️ 詳細架構與撰寫指南
+
+### 一、 導言：現代人的飲食痛點與流行風潮
+    破題引言：用一句話點出該主題解決了什麼現代人的飲食焦慮或引領了什麼新風尚。
+    現代市場影響力：簡述此食材、料理或餐飲風格在目前的普及程度與市場規模。
+
+### 二、 核心定義與分類系統
+    正式學名與常見俗稱：
+      官方/科學名稱：[例如：和牛（Wagyu）、松露（Tuber）、梅納反應]
+      民間親切俗稱：[例如：黑鑽石、油花天花板、焦糖化]
+    機制定位與風味階級：屬於哪一類風味體系或烹飪法？在味覺生理學中作用於哪一個層次？（例如：鮮味 umami 的提取、蛋白質變性）。
+
+### 三、 食材源流與料理傳奇（它從哪裡來？）
+> 💡 撰寫提示： 若該主題為「餐飲風格」（如：Fine Dining 或 街頭小吃），此段可調整為「風格起源、飲食文化與餐桌美學源流」。
+
+    發源背景與歷史契機：誕生於哪個年代、地理環境或歷史背景？最初是如何被發現有特殊風味或營養價值的？
+    農業/烹飪技術突破：該食材有哪些處理上的痛點（如易腐壞、具毒性、難以入味）？主廚或科學家後來用什麼技術（如舒肥、發酵、熟成）克服？
+
+### 四、 核心風味與營養實證（它能帶來什麼？）
+    核心實證價值（精選 1-2 則）：挑選最具科學實證的營養價值或獨特風味化學物質（如：豐富的 Omega-3、獨特的揮發性香氣分子）。
+    味蕾與視覺體驗描述：在正確的烹調下，會為食客帶來什麼樣的口感層次與視覺驚豔？
+
+### 五、 食材特徵與擺盤美學（它長什麼樣子？）
+    外觀與口感解析：生鮮狀態與熟成/烹調後的顏色對比、咀嚼反饋、化口性與香氣釋放速度（如：外酥內嫩、入口即化、層次分明、煙燻尾韻）。
+    擺盤與風味保存：為了呈現最完美的一道菜，通常需要什麼樣的器皿與擺盤設計？（如：預熱的鑄鐵鍋、液態氮冷卻盤、極簡留白陶器）。
+
+### 六、 適用飲食族群與餐酒搭配（誰最適合它？）
+    主要對症痛點：現代人遇到哪些飲食需求（如：減脂、生酮、尋求極致享受、療癒身心）會特別需要它？
+    完美搭配與避雷指南：與哪些食材或酒類（如：單寧重的紅酒、清爽的柑橘類）是天生絕配？哪些飲食禁忌群體（如：痛風、過敏）需要避免？
+
+### 七、 現代餐桌品嚐儀式
+    最佳品嚐時機與順序：應該作為開胃菜還是主餐？搭配什麼樣的醬汁或品嚐順序能發揮最大風味？
+    經典代表名菜/餐廳：現今市場上以此為核心的指標性米其林星級菜色或排隊名店。
+
+### 八、 餐飲業行銷話術 vs. 食品科學正史對比
+    破解常見的「神話級」行銷話術（如：號稱頂級卻是組裝肉、假松露油），從科學角度告訴讀者哪些是真材實料，哪些只是商家的概念炒作，建立專業公信力！
+
+### 九、 結語：舌尖美學的現代啟示
+    核心價值的現代轉化：將複雜的烹飪科學昇華為一種「療癒身心與生活儀式感」，給予讀者日常美好飲食的嚮往。
+    文化傳承與反思：總結它如何從產地走向餐桌，成為跨越文化的味覺記憶。
+
+現在，請以「${ctx.theme}」為主題，開始撰寫這份嚴謹的科學報告。`,
+  },
+  {
+    id: 2,
+    title: "長影音腳本撰寫",
+    description: "根據基礎背景，產出 5-10 分鐘的美食探店或料理科普 YouTube 長影片文案。",
+    type: "text",
+    dependsOn: ["theme", "step1"],
+    prompt: (ctx) => `請根據以下【經過專家查核的基礎科學資料】，為「${ctx.theme}」撰寫一份 5-10 分鐘的 YouTube 長影片腳本。
+
+【⚠️ 絕對真實性指令】：
+你在本腳本中提及的所有食材、化學反應（如梅納反應）、專有名詞與烹調步驟，必須 100% 遵守下方提供的背景資料，不可修改名詞定義與功效宣稱。
+
+背景資料：
+${ctx.step1}
+
+腳本需求：包含引人入勝的味蕾痛點開場、深度食材探究與智商稅誤區解析、以及總結與互動引導。`,
+  },
+  {
+    id: 3,
+    title: "長影音 SEO 優化",
+    description: "生成標題、標籤與說明欄內容。",
+    type: "text",
+    dependsOn: ["theme", "step2"],
+    prompt: (ctx) => `請根據以下長影音腳本，為主題「${ctx.theme}」生成 SEO 優化內容。
+腳本內容：
+${ctx.step2}
+
+請提供：5 個 Hook 標題（需帶有老饕必看或食安/美味破解感）、10 個熱門美食餐飲 Hasthtags、以及 150 字影片說明、時間軸建議。`,
+  },
+  {
+    id: 4,
+    title: "短影音腳本撰寫",
+    description: "產出 60 秒內的精簡爆款美食短影片文案。",
+    type: "text",
+    dependsOn: ["theme", "step1"],
+    prompt: (ctx) => `請根據以下背景資料，為「${ctx.theme}」撰寫一份 60 秒內的 YouTube Shorts/TikTok 短影片腳本。
+背景資料：
+${ctx.step1}
+
+需求：節奏明快，前 3 秒必須有鉤子 (Hook，如「你以為你吃的是真和牛嗎？」或「這道神級料理的秘密居然是...」)，內容精簡有力，直擊味蕾與解法。`,
+  },
+  {
+    id: 5,
+    title: "短影音 SEO 優化",
+    description: "生成短影片標題與標籤。",
+    type: "text",
+    dependsOn: ["theme", "step4"],
+    prompt: (ctx) => `請根據以下短影音腳本，產出適合的 SEO 內容。
+腳本內容：
+${ctx.step4}
+
+請提供：3 個衝擊力強、適合美食短影音演算法的標題。`,
+  },
+  {
+    id: 6,
+    title: "長影音縮圖設計",
+    description: "生成 3 組 16:9 YouTube 縮圖文案與 AI 繪圖指令。",
+    type: "code",
+    language: "markdown",
+    dependsOn: ["theme", "step3"],
+    prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組美食主題長影音 YouTube 縮圖設計 (16:9)。
+參考背景：${ctx.step3}
+
+【格式絕對鎖定指令】：
+你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
+請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
+AI Prompt (中文) 必須包含：high-end food photography, Michelin star plating, appetizing lighting, depth of field, macro food texture, food editorial aesthetic, culinary art, vibrant natural colors, cinematic lighting, ultra detailed。結尾必須包含：--ar 16:9
+
+請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
+
+### 第一組：[請填入美食縮圖名稱]
+主標：[請填入10字以內主標內容]
+副標：[請填入8字以內副標內容]
+中文：[請填入中文 Prompt，具體描述食材外觀、熟度切面、醬汁滴落或誘人的煙霧光影]`,
+  },
+  {
+    id: 7,
+    title: "短影音縮圖設計",
+    description: "生成 3 組 9:16 短影音縮圖文案與 AI 繪圖指令。",
+    type: "code",
+    language: "markdown",
+    dependsOn: ["theme", "step5"],
+    prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組美食主題短影音 YouTube 縮圖設計 (9:16)。
+參考背景：${ctx.step5}
+
+【格式絕對鎖定指令】：
+你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
+請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
+AI Prompt (中文) 必須包含：high-end food photography, Michelin star plating, appetizing lighting, depth of field, macro food texture, food editorial aesthetic, culinary art, vibrant natural colors, cinematic lighting, ultra detailed。結尾必須包含：--ar 9:16
+
+請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
+
+### 第一組：[請填入短影音美食縮圖名稱]
+高點擊文案：[請填入10字以內主標內容]
+中文：[請填入中文 Prompt，具體描述食材外觀、熟度切面、醬汁滴落或誘人的煙霧光影]`,
+  },
+  {
+    id: 8,
+    title: "頂級餐飲行銷海報",
+    description: "生成 3 組 9:16 高奢餐飲海報（附帶留白排版空間）。",
+    type: "code",
+    language: "markdown",
+    dependsOn: ["theme"],
+    prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組 9:16 頂級餐飲行銷海報設計。
+視覺設計必須包含風格標籤 (high-end food photography, commercial food poster design, negative space for typography, Michelin star plating, appetizing lighting, depth of field, macro food texture, fine dining aesthetic, culinary art, ultra detailed)，畫面必須留有排版文字的空間 (Negative Space)，並充滿極致美味的視覺張力（如肉汁反光、精緻餐瓷、剛出爐的熱氣）。
+
+【格式絕對鎖定指令】：
+你現在是頂級餐飲與生活風格行銷專家，禁止任何開場白、問候語、解釋或結語。
+請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
+AI Prompt (中文) 必須包含：high-end food photography, commercial food poster design, negative space for typography, Michelin star plating, appetizing lighting, depth of field, macro food texture, fine dining aesthetic, culinary art, ultra detailed。 結尾必須包含：--ar 9:16
+
+請直接輸出以下格式，重複三次（第一組、第二組、第三組）：
+
+### 第一組：[請填入餐飲行銷海報名稱]
+核心文案：[請填入八字以內的頂級美食文案，如：極致旬味]
+促銷副標：[請填入副標，如：米其林星級主廚客座]
+中文Prompt：[餐飲行銷專家設計中文 Prompt，務必明確指出畫面中「留白空間」的位置以利後續壓字，並強調食物垂涎欲滴的質感與光影]`,
+  },
+  {
+    id: 9,
+    title: "Suno AI 配樂設計",
+    description: "生成 3 組符合美食/料理場景氛圍的音樂生成指令。",
+    type: "code",
+    language: "markdown",
+    dependsOn: ["theme", "step1"],
+    prompt: (ctx) => `請針對主題「${ctx.theme}」生成 3 組 Suno AI 音樂生成 Prompt。
+場景設計分別為：1. 頂級饗宴（米其林餐廳/主廚精緻上菜的尊榮感）、2. 療癒手作（ASMR 慢燉/深夜食堂的放鬆感）、3. 街頭快嘴（夜市探店/快手料理的歡樂節奏）。
+
+【格式絕對鎖定指令】：
+你現在是一個自動化資料轉換 API。禁止任何開場白、問候語、解釋或結語。
+請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
+Suno AI 中文 Prompt 必須包含 Music Style、Instruments、Tempo。
+
+請直接輸出以下格式，依照三種場景順序生成：
+
+### 第一組：頂級饗宴感
+適用場景：[如：米其林摘星紀錄/法式主廚擺盤]
+Suno AI Prompt：[請填入包含參數的中文 Prompt 內容，例如：Orchestral jazz, elegant grand piano, luxurious, 90 BPM]
+
+### 第二組：療癒手作感
+適用場景：[如：深夜烘焙、溫火慢熬 ASMR]
+Suno AI Prompt：[請填入包含參數的中文 Prompt 內容，例如：Acoustic folk, warm guitar, lo-fi beats, relaxing, 75 BPM]
+
+### 第三組：街頭快嘴感
+適用場景：[如：夜市爆紅美食探店、快手熱炒]
+Suno AI Prompt：[請填入包含參數的中文 Prompt 內容，例如：Upbeat Funk pop, brass section, energetic, 125 BPM]`,
+  },
+  {
+    id: 10,
+    title: "社群推播發控中心",
+    description: "一鍵生成動態視覺提示詞、圖卡排版字卡與社群正文",
+    type: "social",
+    language: "markdown",
+    dependsOn: ["theme", "step1"],
+    prompt: (ctx) => `你現在是頂級美食生活誌視覺總監與高轉化餐飲社群文案主編。
+你的任務是根據下方的【基礎背景科學查核】，為主題「${ctx.theme}」打造一組「饕客必存」社群圖文懶人包。
+
+【⚠️ 絕對真實性指令】：
+所有萃取的資訊，必須完全基於下方科學/歷史資料，禁止腦補。
+
+【基礎背景科學查核】：
+${ctx.step1}
+
+---
+### 任務：撰寫社群發布正文
+使用懂吃、誘人且具專業公信力的語氣。將科學/料理資料轉化為 3~5 點易讀的風味亮點或智商稅解析，並以勾起食慾的痛點提問開場，以餐廳訂位或食譜導流收尾。
+
+---
+
+### 📱 社群發布正文
+[請填入帶有精緻 Emoji 的 Hook 開場白，例如：你以為吃的是頂級和牛，其實只是花錢買油？🥩]
+
+[請條列 3-5 點核心亮點解析，每點包含一個精緻小標題與兩句原理解說，必須基於資料]
+
+[互動提問：邀請粉絲留言分享自己最愛的吃法或必回訪的口袋名單]
+懂吃更要吃對，點擊看完整老饕攻略 ➔ [此處自動帶入食譜連結 / 餐廳專屬訂位網址]
+
+#老饕推薦 #${ctx.theme} [請再補充 3-5 個美食餐飲熱門 Hashtags]
+`
+  }
 ]
 };
 
