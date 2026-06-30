@@ -309,8 +309,8 @@ AI Prompt (中文):[開始撰寫9:16 動態分割構圖提示詞]
     description: "針對保養成分或美妝趨勢進行定義釐清與科學/歷史文獻彙整",
     type: "text",
     dependsOn: ["theme"],
-    prompt: (ctx) => `你是一位嚴謹的皮膚科學專家與國際時尚美妝趨勢主編。請針對主題「${ctx.theme}」進行一份約 1500 字的精確事實報告。
-請注意，網路上常有誇大的美妝謠言與行銷話術，請務必基於皮膚科學機轉、成分實證或時尚發展史撰寫，嚴禁任何 AI 腦補。
+    prompt: (ctx) => `你是一位嚴謹的皮膚科學專家與國際美妝保養趨勢主編。請針對主題「${ctx.theme}」進行一份約 1500 字的精確事實報告。
+請注意，網路上常有誇大的美妝謠言與行銷話術，請務必基於皮膚科學機轉、成分實證或發展史撰寫，嚴禁任何 AI 腦補。
 撰寫時請務必嚴格遵循以下「詳細架構與撰寫指南」進行結構化輸出：
 
 ## 🗂️ 詳細架構與撰寫指南
@@ -462,7 +462,7 @@ AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury a
 視覺設計必須包含風格標籤 (high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed)，充滿極簡美學與高級保養質地的氛圍。
 
 【格式絕對鎖定指令】：
-你現在是時尚美妝保養行銷專家，
+你現在是美妝保養行銷專家，
 請【完全且嚴格】拷貝下方的 Markdown 模板進行填寫，不可新增任何標籤、不可改變欄位名稱、不可隨意加上粗體符號。
 AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury aesthetic, crisp studio lighting, soft shadows, macro product texture, clean girl aesthetic, high-end cosmetics branding, pastel neutral tones, cinematic lighting, ultra detailed。 結尾必須包含：--ar 9:16
 
@@ -471,7 +471,7 @@ AI Prompt (中文) 必須包含：high-end beauty editorial, minimalist luxury a
 ### 第一組：[請填入高奢行銷海報名稱]
 核心文案：[請填入八字以內的頂級美妝文案]
 促銷副標：[請填入副標]
-中文Prompt：[時尚美妝保養行銷專家設計中文 Prompt]`,
+中文Prompt：[美妝保養行銷專家設計中文 Prompt]`,
   },
   {
     id: 9,
@@ -509,7 +509,7 @@ Suno AI Prompt：[請填入包含參數的中文 Prompt 內容，例如：Upbeat
     type: "social",
     language: "markdown",
     dependsOn: ["theme", "step1"],
-    prompt: (ctx) => `你現在是頂級時尚雜誌視覺總監與高轉化美妝社群文案主編。
+    prompt: (ctx) => `你現在是頂級美妝保養雜誌視覺總監與高轉化美妝社群文案主編。
 你的任務是根據下方的【基礎背景科學查核】，為主題「${ctx.theme}」打造一組「高奢雜誌風」社群圖文懶人包。
 
 【⚠️ 絕對真實性指令】：

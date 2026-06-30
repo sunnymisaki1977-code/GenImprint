@@ -23,7 +23,7 @@ export const AUDIENCE_THEMES = {
   },
   beauty: {
     id: 'beauty',
-    title: '時尚美妝保養',
+    title: '「美妝保養悅己美學」',
     subtitle: 'Glamour Rose 奢華玫瑰金',
     desc: '高質感、溫柔優雅、奢華玫瑰粉與香檳金。專為美妝、穿搭與高感性生活視覺設計。',
     gradient: 'from-rose-400 via-pink-500 to-amber-500',
@@ -41,7 +41,7 @@ export const AUDIENCE_THEMES = {
     pipelineCurrent: 'bg-pink-900/40 border-pink-500/50 shadow-[0_0_30px_rgba(236,72,153,0.25)]',
     pipelineCurrentIcon: 'bg-pink-500 text-white animate-pulse',
     tagBg: 'bg-pink-500/10 border-pink-500/20 text-pink-300',
-    themeLogMessage: '[Theme] 已切換至「時尚美妝保養 (Glamour Rose)」模式。啟動精緻暖色調高光補償，提升美感氛圍 🟢'
+    themeLogMessage: '[Theme] 已切換至「「美妝保養悅己美學」 (Glamour Rose)」模式。啟動精緻暖色調高光補償，提升美感氛圍 🟢'
   },
   travelpreneur: {
     id: 'travelpreneur',
